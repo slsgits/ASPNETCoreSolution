@@ -1,0 +1,26 @@
+﻿@model EmployeeManagement.ViewModels.HomeDetailsViewModel
+@{
+	Layout = "~/Views/Shared/_Layout.cshtml"; 
+	ViewBag.Title = "Employee Details";
+}
+<h3>@ViewBag.Title</h3>
+@if (@Model != null && @Model.Employee != null){
+            <div>
+		Name: @Model.Employee.Name
+            </div>
+	<div>
+		Email: @Model.Employee.Email
+            </div>
+            <div>
+		Department: @Model.Employee.Department
+            </div>
+    }
+    else
+    {
+        <div>
+            Employee not found.
+        </div>
+	}
+@section Scripts {
+	<script src=" ~ /js/customscripts.js"></script>
+}
