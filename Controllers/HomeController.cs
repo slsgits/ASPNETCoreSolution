@@ -4,21 +4,27 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace EmployeeManagement.Controllers
 {
+    [Route("[controller]/[action]")]
     public class HomeController(IEmployeeRepository employeeRepository) : Controller
     {
         private readonly IEmployeeRepository _employeeRepository = employeeRepository;
 
+        [Route("")]
+        [Route("~/")]
+        [Route("~/Home")]
         public ViewResult Index()
         {
             var employee = _employeeRepository.GetAllEmployees();
             return View(employee);
         }
-        public ViewResult? Details()
+
+        [Route("{id?}")]
+        public ViewResult? Details(int? id)
         {
-            int id = 1;
+            //int id = 3;
             HomeDetailsViewModel homeDetailsViewModel = new()
             {
-                Employee = _employeeRepository.GetEmployee(id),
+                Employee = _employeeRepository.GetEmployee(id??1),
                 PageTitle = "Employee Details"
             };
             return View(homeDetailsViewModel);

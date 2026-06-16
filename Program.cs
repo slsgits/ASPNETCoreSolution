@@ -1,8 +1,11 @@
 using EmployeeManagement.Models;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
+
 // Register MVC services
 builder.Services.AddControllersWithViews();
+
 // Register your custom service
 builder.Services.AddSingleton<IEmployeeRepository, MockEmployeeRepository>();
 var app = builder.Build();
@@ -13,9 +16,15 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseStaticFiles();
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+
+// Configure routing for MVC
+//app.MapControllerRoute(
+//    name: "default",
+//    pattern: "{controller=Home}/{action=Index}/{id?}"
+//    );
+
+//app.MapDefaultControllerRoute(); // This is a shorthand for the above MapControllerRoute method
+app.MapControllers();
 
 app.MapFallback(async context =>
 {
