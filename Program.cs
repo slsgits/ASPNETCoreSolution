@@ -20,7 +20,7 @@ app.UseStaticFiles();
 // Configure routing for MVC
 //app.MapControllerRoute(
 //    name: "default",
-//    pattern: "{controller=Home}/{action=Index}/{id?}"
+//    pattern: "shantilal/{controller=Home}/{action=Index}/{id?}"
 //    );
 
 //app.MapDefaultControllerRoute(); // This is a shorthand for the above MapControllerRoute method
