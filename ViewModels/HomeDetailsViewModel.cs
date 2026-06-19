@@ -4,7 +4,7 @@ namespace EmployeeManagement.ViewModels
 {
     public class HomeDetailsViewModel
     {
-        public Employee Employee { get; set; }
-        public string PageTitle { get; set; }
+        public required Employee Employee { get; set; }
+        public required string PageTitle { get; set; }
     }
 }

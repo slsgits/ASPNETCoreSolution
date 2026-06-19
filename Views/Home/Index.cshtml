@@ -3,19 +3,26 @@
 	ViewBag.Title = "Employees List";
 }
 
-<div class="card-deck">
+<div class="row">
 	@foreach (var employee in Model)
 	{
-		<div class="card m-3">
+		<div class="col-md-4 mb-4">
+		<div class="card h-100">
 			<div class="card-header">
 				<h3>@employee.Name</h3>
 			</div>
-			<img class="card-img-top" src="~/images/me.jpg" asp-append-version=true />
+				<div class="text-center mt-2">
+					<img class="img-fluid rounded" 
+					     src="~/images/me.jpg" 
+						 asp-append-version=true
+						 style="width:120px; height:150px; object-fit:cover;" />
+				</div>
 			<div class="card-footer text-center">
-				<a asp-controller="home" asp-action="details" asp-route-id="@employee.Id" class="btn btn-primary" target="_blank">View</a>
-				<a href="#" class="btn btn-primary">Edit</a>
-				<a href="#" class="btn btn-danger">Delete</a>
+				<a asp-controller="home" asp-action="details" asp-route-id="@employee.Id" class="btn btn-primary m-1" target="_blank">View</a>
+				<a href="#" class="btn btn-primary m-1">Edit</a>
+				<a href="#" class="btn btn-danger m-1">Delete</a>
 			</div>
+		</div>
 		</div>
 	}
 </div>

@@ -9,9 +9,9 @@ namespace EmployeeManagement.Models
         {
             _employeeList =
             [
-                new() { Id = 1, Name = "John Doe", Email = "JohnDoe@gmail.com", Department = "IT" },
-                new() { Id = 2, Name = "Cohn Doe", Email = "CohnDoe@gmail.com", Department = "HR" },
-                new() { Id = 3, Name = "Dohn Doe", Email = "DohnDoe@gmail.com", Department = "IT" }
+                new() { Id = 1, Name = "John Doe", Email = "JohnDoe@gmail.com", Department = Dept.IT },
+                new() { Id = 2, Name = "Cohn Doe", Email = "CohnDoe@gmail.com", Department = Dept.HR },
+                new() { Id = 3, Name = "Dohn Doe", Email = "DohnDoe@gmail.com", Department = Dept.IT }
             ];
         }
 
@@ -20,9 +20,10 @@ namespace EmployeeManagement.Models
             return _employeeList;
         }
 
-        public Employee? GetEmployee(int Id)
+        public Employee GetEmployee(int Id)
         {
-            return _employeeList.FirstOrDefault(e => e.Id == Id);
+            return _employeeList.FirstOrDefault(e => e.Id == Id) ?? 
+                throw new Exception("Employee not found"); ;
         }
     }
 }

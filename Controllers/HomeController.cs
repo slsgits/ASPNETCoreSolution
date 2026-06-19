@@ -17,6 +17,10 @@ namespace EmployeeManagement.Controllers
             var employee = _employeeRepository.GetAllEmployees();
             return View(employee);
         }
+        public ViewResult Create()
+        {
+           return View(); 
+        }
 
         [Route("{id?}")]
         public ViewResult? Details(int? id)
