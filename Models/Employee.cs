@@ -12,6 +12,7 @@ namespace EmployeeManagement.Models
         [MaxLength(50, ErrorMessage = "Email cannot exceed 50 characters")]
         [EmailAddress(ErrorMessage = "Invalid email format")]
         public required string Email { get; set; }
-        public required Dept Department { get; set; }
+        [Required]
+        public required Dept? Department { get; set; }
     }
 }
