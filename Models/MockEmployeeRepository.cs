@@ -1,6 +1,6 @@
-﻿
-namespace EmployeeManagement.Models
+﻿namespace EmployeeManagement.Models
 {
+    //In-Memory Employee Repository
     public class MockEmployeeRepository : IEmployeeRepository
     {
         private readonly List<Employee> _employeeList;
@@ -22,6 +22,16 @@ namespace EmployeeManagement.Models
             return employee;
         }
 
+        public Employee Delete(int id)
+        {
+            Employee? employee = _employeeList.FirstOrDefault(e => e.Id == id);
+            if (employee != null)
+            {
+                _employeeList.Remove(employee);
+            }
+            return employee!;
+        }
+
         public IEnumerable<Employee> GetAllEmployees()
         {
             return _employeeList;
@@ -31,6 +41,18 @@ namespace EmployeeManagement.Models
         {
             return _employeeList.FirstOrDefault(e => e.Id == Id) ?? 
                 throw new Exception("Employee not found"); ;
+        }
+
+        public Employee Update(Employee employeeChanges)
+        {
+            Employee? employee = _employeeList.FirstOrDefault(e => e.Id == employeeChanges.Id);
+            if (employee != null)
+            {
+                employee.Name = employeeChanges.Name;
+                employee.Email = employeeChanges.Email;
+                employee.Department = employeeChanges.Department;
+            }
+            return employee!;
         }
     }
 }
