@@ -27,12 +27,16 @@ namespace EmployeeManagement.Models
 
         public IEnumerable<Employee> GetAllEmployees()
         {
-            return _context.Employees.AsNoTracking().ToList();
+            return _context.Employees.AsNoTracking()
+                                     .Include(e => e.Photos)
+                                     .ToList();
         }
 
         public Employee GetEmployee(int id)
         {
-            return _context.Employees.AsNoTracking().FirstOrDefault(e => e.Id == id)!;
+            return _context.Employees.AsNoTracking().
+                   Include(e => e.Photos).
+                   FirstOrDefault(e => e.Id == id)!;
         }
 
         public Employee Update(Employee employeeChanges)
