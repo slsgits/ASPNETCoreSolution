@@ -25,6 +25,28 @@ namespace EmployeeManagement.Controllers
            return View(); 
         }
 
+        [HttpGet]
+        public ViewResult Edit(int id)
+        {
+            var employee = _employeeRepository.GetEmployee(id);
+            if (employee == null)
+            {
+                Response.StatusCode = 404;
+                return View("EmployeeNotFound", id);
+            }
+
+            var employeeEditViewModel = new EmployeeEditViewModel
+            {
+                Id = employee.Id,
+                Name = employee.Name,
+                Email = employee.Email,
+                Department = employee.Department,
+                ExistingPhotoPaths = employee.Photos.Select(p => p.FileName).ToList()
+            };
+
+            return View(employeeEditViewModel);
+        }
+
         [HttpPost]
         public IActionResult Create(EmployeeCreateViewModel model)
         {
