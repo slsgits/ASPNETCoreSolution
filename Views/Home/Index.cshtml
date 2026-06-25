@@ -20,7 +20,8 @@
 					<img src="~/images/@photoPath"
 						 class="img-fluid rounded img-thumbnail"
 						 style="height:150px; width:120px; object-fit:cover;"
-						 asp-append-version=true/>
+						 asp-append-version=true
+						 title="@photoPath" />
 				</div>
 			<div class="card-footer text-center">
 				<a asp-controller="home" asp-action="details" asp-route-id="@employee.Id" class="btn btn-primary m-1" target="_blank">View</a>

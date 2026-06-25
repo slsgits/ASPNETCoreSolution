@@ -14,7 +14,8 @@ namespace EmployeeManagement.Models
             modelBuilder.Entity<EmployeePhoto>()
                 .HasOne(p => p.Employee)
                 .WithMany(e => e.Photos)
-                .HasForeignKey(p => p.EmployeeId);
+                .HasForeignKey(p => p.EmployeeId)
+                .OnDelete(DeleteBehavior.Cascade); ;
 
             modelBuilder.Seed();
         }

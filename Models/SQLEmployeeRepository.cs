@@ -41,14 +41,13 @@ namespace EmployeeManagement.Models
 
         public Employee Update(Employee employeeChanges)
         {
-            var employee = _context.Employees.Find(employeeChanges.Id) 
-                         ?? throw new InvalidOperationException($"Employee with Id {employeeChanges.Id} not found.");
-            employee.Name = employeeChanges.Name;
-            employee.Email = employeeChanges.Email;
-            employee.Department = employeeChanges.Department;
-
+            _context.Employees.Update(employeeChanges);
             _context.SaveChanges();
-            return employee;
+            return employeeChanges;
         }
-}
+        public void DeleteEmployeePhotos(List<EmployeePhoto> photos)
+        {
+            _context.EmployeePhotos.RemoveRange(photos);
+        }
+    }
 }

@@ -32,6 +32,11 @@
             return employee!;
         }
 
+        public void DeleteEmployeePhotos(List<EmployeePhoto> photos)
+        {
+            throw new NotImplementedException();
+        }
+
         public IEnumerable<Employee> GetAllEmployees()
         {
             return _employeeList;

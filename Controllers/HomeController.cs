@@ -26,13 +26,12 @@ namespace EmployeeManagement.Controllers
         }
 
         [HttpGet]
-        public ViewResult Edit(int id)
+        public IActionResult Edit(int id)
         {
             var employee = _employeeRepository.GetEmployee(id);
             if (employee == null)
             {
-                Response.StatusCode = 404;
-                return View("EmployeeNotFound", id);
+                return NotFound();
             }
 
             var employeeEditViewModel = new EmployeeEditViewModel
@@ -45,6 +44,51 @@ namespace EmployeeManagement.Controllers
             };
 
             return View(employeeEditViewModel);
+        }
+
+        [HttpPost]
+        public IActionResult Edit(EmployeeEditViewModel model)
+        {
+            // reload existing photos if validation fails
+            Employee? employee = _employeeRepository.GetEmployee(model.Id);
+
+            if (employee == null)
+            {
+                return NotFound();
+            }
+
+            if (!ModelState.IsValid)
+            {
+                model.ExistingPhotoPaths = employee.Photos.Select(p => p.FileName).ToList();
+                return View(model);
+            }
+
+            // update employee basic fields
+            employee.Name = model.Name;
+            employee.Email = model.Email;
+            employee.Department = model.Department;
+
+            if (model.Photos != null && model.Photos.Count > 0)
+            {
+                // 1. Delete old physical files
+                DeletePhotoFiles(model.ExistingPhotoPaths.ToList());
+
+                // 2. Delete old photo records from DB
+                _employeeRepository.DeleteEmployeePhotos(employee.Photos.ToList());
+
+                // 3. Save new files
+                List<string> uploadedFileNames = ProcessUploadedFiles(model.Photos);
+
+                // 4. Replace employee photos with new ones
+                employee.Photos = uploadedFileNames.Select(fileName => new EmployeePhoto
+                {
+                    FileName = fileName
+                }).ToList();
+            }
+
+            _employeeRepository.Update(employee);
+
+            return RedirectToAction("Index");
         }
 
         [HttpPost]
@@ -117,6 +161,27 @@ namespace EmployeeManagement.Controllers
             }
 
             return uniqueFileNames;
+        }
+
+        private void DeletePhotoFiles(List<string> existingPhotoPaths)
+        {
+            if (existingPhotoPaths == null || !existingPhotoPaths.Any())
+                return;
+
+            string uploadsFolder = Path.Combine(hostEnvironment.WebRootPath, "images");
+
+            foreach (var photoPath in existingPhotoPaths)
+            {
+                if (!string.IsNullOrEmpty(photoPath))
+                {
+                    string filePath = Path.Combine(uploadsFolder, photoPath);
+
+                    if (System.IO.File.Exists(filePath))
+                    {
+                        System.IO.File.Delete(filePath);
+                    }
+                }
+            }
         }
     }
 }
