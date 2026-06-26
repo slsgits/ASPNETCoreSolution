@@ -183,5 +183,35 @@ namespace EmployeeManagement.Controllers
                 }
             }
         }
+
+        [HttpGet]
+        public IActionResult Delete(int id)
+        {
+            var employee = _employeeRepository.GetEmployee(id);
+            if (employee == null)
+            {
+                return NotFound();
+            }
+            return View(employee);
+        }
+
+        [HttpPost, ActionName("Delete")]
+        public IActionResult DeleteConfirmed(int id)
+        {
+            var employee = _employeeRepository.GetEmployee(id);
+            if (employee == null)
+            {
+                return NotFound();
+            }
+
+            // 1. Delete physical photo files
+            var photoPaths = employee.Photos.Select(p => p.FileName).ToList();
+            DeletePhotoFiles(photoPaths);
+
+            // 2. Delete employee record from DB
+            _employeeRepository.Delete(employee);
+
+            return RedirectToAction("Index");
+        }
     }
 }

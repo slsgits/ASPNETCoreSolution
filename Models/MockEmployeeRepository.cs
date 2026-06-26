@@ -32,6 +32,11 @@
             return employee!;
         }
 
+        public Employee Delete(Employee employee)
+        {
+            throw new NotImplementedException();
+        }
+
         public void DeleteEmployeePhotos(List<EmployeePhoto> photos)
         {
             throw new NotImplementedException();

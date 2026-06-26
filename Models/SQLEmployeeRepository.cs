@@ -13,13 +13,8 @@ namespace EmployeeManagement.Models
             return employee;
         }
 
-        public Employee Delete(int id)
+        public Employee Delete(Employee employee)
         {
-            var employee = _context.Employees.Find(id);
-
-            if (employee == null)
-                return null!;
-
             _context.Employees.Remove(employee);
             _context.SaveChanges();
             return employee;

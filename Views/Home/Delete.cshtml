@@ -1,0 +1,33 @@
+﻿@model Employee
+
+<h3>Delete Employee</h3>
+
+<div class="alert alert-warning">
+    Are you sure you want to delete <strong>@Model.Name</strong>?
+</div>
+
+@if (Model.Photos.Any())
+{
+    <div class="row">
+        @foreach (var photo in Model.Photos)
+        {
+            <div class="col-md-3 mb-3">
+                <img src="~/images/@photo.FileName"
+                     class="img-thumbnail"
+                     style="height:120px;width:120px;object-fit:cover;" />
+            </div>
+        }
+    </div>
+}
+
+<form asp-action="Delete" method="post">
+    <input type="hidden" asp-for="Id" />
+
+    <button type="submit" class="btn btn-danger">
+        Delete
+    </button>
+
+    <a asp-action="Index" class="btn btn-secondary">
+        Cancel
+    </a>
+</form>
