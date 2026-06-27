@@ -1,6 +1,5 @@
 using EmployeeManagement.Models;
 using Microsoft.EntityFrameworkCore;
-
 var builder = WebApplication.CreateBuilder(args);
 
 // Register MVC services
@@ -16,21 +15,13 @@ if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
 }
+else
+{
+    //app.UseStatusCodePages();
+    //app.UseStatusCodePagesWithRedirects("/Error/{0}");
+    app.UseStatusCodePagesWithReExecute("/Error/{0}");
+}
 
 app.UseStaticFiles();
-
-// Configure routing for MVC
-//app.MapControllerRoute(
-//    name: "default",
-//    pattern: "shantilal/{controller=Home}/{action=Index}/{id?}"
-//    );
-
-//app.MapDefaultControllerRoute(); // This is a shorthand for the above MapControllerRoute method
 app.MapControllers();
-
-app.MapFallback(async context =>
-{
-    await context.Response.WriteAsync("Page not found");
-});
-
 app.Run();
