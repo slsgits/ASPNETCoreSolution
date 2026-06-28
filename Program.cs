@@ -1,6 +1,19 @@
 using EmployeeManagement.Models;
 using Microsoft.EntityFrameworkCore;
+using NLog;
+using NLog.Web;
+
+var logger = LogManager.Setup()
+                       .LoadConfigurationFromFile("nlog.config")
+                       .GetCurrentClassLogger();
+logger.Info("Application starting...");
+
 var builder = WebApplication.CreateBuilder(args);
+
+// Remove default logging providers
+builder.Logging.ClearProviders();
+// Add NLog
+builder.Host.UseNLog();
 
 // Register MVC services
 builder.Services.AddControllersWithViews();
@@ -17,6 +30,7 @@ if (app.Environment.IsDevelopment())
 }
 else
 {
+    app.UseExceptionHandler("/Error");
     //app.UseStatusCodePages();
     //app.UseStatusCodePagesWithRedirects("/Error/{0}");
     app.UseStatusCodePagesWithReExecute("/Error/{0}");
