@@ -3,16 +3,12 @@ using Microsoft.EntityFrameworkCore;
 using NLog;
 using NLog.Web;
 
-var logger = LogManager.Setup()
-                       .LoadConfigurationFromFile("nlog.config")
-                       .GetCurrentClassLogger();
-logger.Info("Application starting...");
-
 var builder = WebApplication.CreateBuilder(args);
 
 // Remove default logging providers
 builder.Logging.ClearProviders();
 // Add NLog
+//builder.Logging.AddDebug();
 builder.Host.UseNLog();
 
 // Register MVC services

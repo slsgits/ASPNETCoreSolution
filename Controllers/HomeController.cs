@@ -1,21 +1,25 @@
 ﻿using EmployeeManagement.Models;
 using EmployeeManagement.ViewModels;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Hosting;
 
 namespace EmployeeManagement.Controllers
 {
     [Route("[controller]/[action]")]
-    public class HomeController(IEmployeeRepository employeeRepository, IWebHostEnvironment webhostEnvironment) : Controller
+    public class HomeController(IEmployeeRepository employeeRepository, 
+                                IWebHostEnvironment webhostEnvironment,
+                                ILogger<HomeController> logger) 
+               : Controller
     {
         private readonly IEmployeeRepository _employeeRepository = employeeRepository;
-        private readonly IWebHostEnvironment hostEnvironment = webhostEnvironment;
+        private readonly IWebHostEnvironment _hostEnvironment = webhostEnvironment;
+        private readonly ILogger<HomeController> _logger = logger;
 
         [Route("")]
         [Route("~/")]
         [Route("~/Home")]
         public ViewResult Index()
         {
+            _logger.LogInformation("Employee list requested.");
             var employee = _employeeRepository.GetAllEmployees();
             return View(employee);
         }
@@ -31,6 +35,7 @@ namespace EmployeeManagement.Controllers
             var employee = _employeeRepository.GetEmployee(id);
             if (employee == null)
             {
+                _logger.LogWarning("Edit failed. Employee with Id {EmployeeId} was not found.",id);
                 return NotFound();
             }
 
@@ -49,96 +54,125 @@ namespace EmployeeManagement.Controllers
         [HttpPost]
         public IActionResult Edit(EmployeeEditViewModel model)
         {
-            // reload existing photos if validation fails
-            Employee? employee = _employeeRepository.GetEmployee(model.Id);
-
-            if (employee == null)
+            try
             {
-                return NotFound();
-            }
+                // reload existing photos if validation fails
+                Employee? employee = _employeeRepository.GetEmployee(model.Id);
 
-            if (!ModelState.IsValid)
-            {
-                model.ExistingPhotoPaths = employee.Photos.Select(p => p.FileName).ToList();
-                return View(model);
-            }
-
-            // update employee basic fields
-            employee.Name = model.Name;
-            employee.Email = model.Email;
-            employee.Department = model.Department;
-
-            if (model.Photos != null && model.Photos.Count > 0)
-            {
-                // 1. Delete old physical files
-                DeletePhotoFiles(model.ExistingPhotoPaths.ToList());
-
-                // 2. Delete old photo records from DB
-                _employeeRepository.DeleteEmployeePhotos(employee.Photos.ToList());
-
-                // 3. Save new files
-                List<string> uploadedFileNames = ProcessUploadedFiles(model.Photos);
-
-                // 4. Replace employee photos with new ones
-                employee.Photos = uploadedFileNames.Select(fileName => new EmployeePhoto
+                if (employee == null)
                 {
-                    FileName = fileName
-                }).ToList();
+                    _logger.LogWarning("Edit failed. Employee with Id {EmployeeId} was not found.", model.Id);
+                    return NotFound();
+                }
+
+                if (!ModelState.IsValid)
+                {
+                    _logger.LogWarning("Validation failed while editing employee {EmployeeId}.", model.Id);
+                    model.ExistingPhotoPaths = employee.Photos.Select(p => p.FileName).ToList();
+                    return View(model);
+                }
+
+                // update employee basic fields
+                employee.Name = model.Name;
+                employee.Email = model.Email;
+                employee.Department = model.Department;
+
+                if (model.Photos != null && model.Photos.Count > 0)
+                {
+                    // 1. Delete old physical files
+                    DeletePhotoFiles(model.ExistingPhotoPaths.ToList());
+
+                    // 2. Delete old photo records from DB
+                    _employeeRepository.DeleteEmployeePhotos(employee.Photos.ToList());
+
+                    // 3. Save new files
+                    List<string> uploadedFileNames = ProcessUploadedFiles(model.Photos);
+
+                    // 4. Replace employee photos with new ones
+                    employee.Photos = uploadedFileNames.Select(fileName => new EmployeePhoto
+                    {
+                        FileName = fileName
+                    }).ToList();
+                }
+
+                _employeeRepository.Update(employee);
+                _logger.LogInformation("Employee {EmployeeId} updated successfully.", employee.Id);
+                return RedirectToAction("Index");
             }
-
-            _employeeRepository.Update(employee);
-
-            return RedirectToAction("Index");
+            catch (Exception ex)
+            {
+                _logger.LogError(ex,"Error while updating employee {EmployeeId}.",model.Id);
+                throw;
+            }
         }
 
         [HttpPost]
         public IActionResult Create(EmployeeCreateViewModel model)
         {
-            if (ModelState.IsValid)
+            try
             {
-                List<string> uploadedFileNames =  ProcessUploadedFiles(model.Photos);
-                Employee newEmployee = new()
+                if (ModelState.IsValid)
                 {
-                    Name = model.Name,
-                    Email = model.Email,
-                    Department = model.Department
-                };
-
-                if (model.Photos != null && model.Photos.Count > 0)
-                {
-                    foreach (var fileName in uploadedFileNames)
+                    List<string> uploadedFileNames = ProcessUploadedFiles(model.Photos);
+                    Employee newEmployee = new()
                     {
-                        newEmployee.Photos.Add(new EmployeePhoto
-                        {
-                            FileName = fileName
-                        });
-                    }
-                }
+                        Name = model.Name,
+                        Email = model.Email,
+                        Department = model.Department
+                    };
 
-                _employeeRepository.Add(newEmployee);
-                return RedirectToAction("Details", new { id = newEmployee.Id });
+                    if (model.Photos != null && model.Photos.Count > 0)
+                    {
+                        foreach (var fileName in uploadedFileNames)
+                        {
+                            newEmployee.Photos.Add(new EmployeePhoto
+                            {
+                                FileName = fileName
+                            });
+                        }
+                    }
+
+                    _employeeRepository.Add(newEmployee);
+                    _logger.LogInformation("Employee created successfully with Id {EmployeeId}", newEmployee.Id);
+                    return RedirectToAction("Details", new { id = newEmployee.Id });
+                }
+                _logger.LogWarning("Employee creation failed because model validation failed.");
+                return View();
             }
-            return View();
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while addming employee.");
+                throw;
+            }
         }
 
         [Route("{id?}")]
         public ViewResult Details(int? id)
         {
-            //throw new Exception("Exception in details");
-
-            Employee employee = _employeeRepository.GetEmployee(id ?? 1);
-            if (employee == null)
+            try
             {
-                Response.StatusCode = 404;
-                return View("EmployeeNotFound", id);
+                Employee employee = _employeeRepository.GetEmployee(id ?? 1);
+
+                if (employee == null)
+                {
+                    _logger.LogWarning("Employee with Id {EmployeeId} was not found.", id);
+                    Response.StatusCode = 404;
+                    return View("EmployeeNotFound", id);
+                }
+
+                HomeDetailsViewModel homeDetailsViewModel = new()
+                {
+                    Employee = employee,
+                    PageTitle = "Employee Details"
+                };
+
+                return View(homeDetailsViewModel);
             }
-
-            HomeDetailsViewModel homeDetailsViewModel = new()
+            catch (Exception ex)
             {
-                Employee = employee,
-                PageTitle = "Employee Details"
-            };
-            return View(homeDetailsViewModel);
+                _logger.LogError(ex, "An error occurred while fetching employee details for Id {EmployeeId}.", id);
+                throw; // Re-throw the exception to be handled by the global exception handler
+            }
         }
 
         private List<string> ProcessUploadedFiles(List<IFormFile>? photos)
@@ -148,7 +182,7 @@ namespace EmployeeManagement.Controllers
             if (photos == null || photos.Count == 0)
                 return uniqueFileNames;
 
-            string uploadsFolder = Path.Combine(hostEnvironment.WebRootPath, "images");
+            string uploadsFolder = Path.Combine(_hostEnvironment.WebRootPath, "images");
 
             if (!Directory.Exists(uploadsFolder))
             {
@@ -163,8 +197,15 @@ namespace EmployeeManagement.Controllers
                     string filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
                     using var fileStream = new FileStream(filePath, FileMode.Create);
-                    photo.CopyTo(fileStream);
-
+                    try
+                    {
+                        photo.CopyTo(fileStream);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex,"Failed to save uploaded photo '{FileName}'.",photo.FileName);
+                        throw;
+                    }
                     uniqueFileNames.Add(uniqueFileName);
                 }
             }
@@ -174,10 +215,10 @@ namespace EmployeeManagement.Controllers
 
         private void DeletePhotoFiles(List<string> existingPhotoPaths)
         {
-            if (existingPhotoPaths == null || !existingPhotoPaths.Any())
+            if (existingPhotoPaths == null || existingPhotoPaths.Count == 0)
                 return;
 
-            string uploadsFolder = Path.Combine(hostEnvironment.WebRootPath, "images");
+            string uploadsFolder = Path.Combine(_hostEnvironment.WebRootPath, "images");
 
             foreach (var photoPath in existingPhotoPaths)
             {
@@ -187,7 +228,15 @@ namespace EmployeeManagement.Controllers
 
                     if (System.IO.File.Exists(filePath))
                     {
-                        System.IO.File.Delete(filePath);
+                        try
+                        {
+                            System.IO.File.Delete(filePath);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Failed to delete photo file '{FilePath}'.", filePath);
+                            // Optionally, you can choose to continue or throw the exception based on your requirements
+                        }
                     }
                 }
             }
@@ -199,28 +248,39 @@ namespace EmployeeManagement.Controllers
             var employee = _employeeRepository.GetEmployee(id);
             if (employee == null)
             {
+                _logger.LogWarning("Delete failed. Employee with Id {EmployeeId} was not found.", id);
                 return NotFound();
             }
+            _logger.LogInformation("Delete confirmation requested for employee {EmployeeId}.",id);
             return View(employee);
         }
 
         [HttpPost, ActionName("Delete")]
         public IActionResult DeleteConfirmed(int id)
         {
-            var employee = _employeeRepository.GetEmployee(id);
-            if (employee == null)
+            try
             {
-                return NotFound();
+                var employee = _employeeRepository.GetEmployee(id);
+                if (employee == null)
+                {
+                    _logger.LogWarning("Delete failed. Employee with Id {EmployeeId} was not found.", id);
+                    return NotFound();
+                }
+
+                // 1. Delete physical photo files
+                var photoPaths = employee.Photos.Select(p => p.FileName).ToList();
+                DeletePhotoFiles(photoPaths);
+
+                // 2. Delete employee record from DB
+                _employeeRepository.Delete(employee);
+                _logger.LogInformation("Employee {EmployeeId} deleted successfully.", id);
+                return RedirectToAction("Index");
             }
-
-            // 1. Delete physical photo files
-            var photoPaths = employee.Photos.Select(p => p.FileName).ToList();
-            DeletePhotoFiles(photoPaths);
-
-            // 2. Delete employee record from DB
-            _employeeRepository.Delete(employee);
-
-            return RedirectToAction("Index");
+            catch (Exception ex)
+            {
+                _logger.LogError(ex,"Error occurred while deleting employee {EmployeeId}.",id);
+                throw;
+            }
         }
     }
 }
