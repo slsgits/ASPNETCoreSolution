@@ -16,8 +16,6 @@ namespace EmployeeManagement.Controllers
             {
                 case 404:
                     ViewBag.ErrorMessage = "Sorry, the resource you requested could not be found";
-                    //ViewBag.Path = statusCodeResult?.OriginalPath;
-                    //ViewBag.QS = statusCodeResult?.OriginalQueryString;
                     logger.LogWarning("404 error occurred. Path = {Path} and QueryString = {QueryString}", statusCodeResult?.OriginalPath, statusCodeResult?.OriginalQueryString);
                     break;
                 case 500:
@@ -33,10 +31,6 @@ namespace EmployeeManagement.Controllers
         {
             var exceptionDetails = HttpContext.Features.Get<IExceptionHandlerPathFeature>();
             logger.LogError("The path {Path} threw an exception {Exception}", exceptionDetails?.Path, exceptionDetails?.Error);
-
-            //ViewBag.ExceptionPath = exceptionDetails?.Path;
-            //ViewBag.ExceptionMessage = exceptionDetails?.Error.Message;
-            //ViewBag.StackTrace = exceptionDetails?.Error.StackTrace;
             return View("Error");
         }
     }
