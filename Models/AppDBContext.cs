@@ -1,9 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
 namespace EmployeeManagement.Models
 {
     public class AppDBContext(DbContextOptions<AppDBContext> options) 
-               : DbContext(options)
+               : IdentityDbContext(options)
     {
         public DbSet<Employee> Employees { get; set; }
         public DbSet<EmployeePhoto> EmployeePhotos { get; set; }
