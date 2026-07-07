@@ -1,7 +1,6 @@
 ﻿using EmployeeManagement.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace EmployeeManagement.Controllers
 {
@@ -32,6 +31,7 @@ namespace EmployeeManagement.Controllers
                 UserName = model.Email,
                 Email = model.Email
             };
+
             var result = await _userManager.CreateAsync(user, model.Password);
 
             if (result.Succeeded)
@@ -53,6 +53,47 @@ namespace EmployeeManagement.Controllers
                 ModelState.AddModelError(string.Empty, error.Description);
             }
             return View(model);
+        }
+
+        [HttpGet]
+        public IActionResult Login()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Login(LoginViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+           
+            var result = await _signInManager
+                        .PasswordSignInAsync(model.Email, model.Password, 
+                                             model.RememberMe, 
+                                             lockoutOnFailure: false);
+
+            if (result.Succeeded)
+            {
+                _logger.LogInformation(
+                       "User logged in : {Email}",
+                        model.Email);
+                return RedirectToAction("Index", "Home");
+            }
+
+            _logger.LogWarning(
+                   "User login failed : {Email}.",
+                   model.Email);
+           
+            ModelState.AddModelError(string.Empty, "Invalid Login Attempt!");
+            return View(model);
+        }
+        public async Task<IActionResult> Logout()
+        {
+            await _signInManager.SignOutAsync();
+            _logger.LogInformation("User logged out : {Email}", User.Identity?.Name ?? "Unknown");
+            return RedirectToAction("Index", "Home");
         }
     }
 }

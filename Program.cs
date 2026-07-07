@@ -22,8 +22,8 @@ builder.Services.AddDbContextPool<AppDBContext>(options =>
 builder.Services.AddIdentity<IdentityUser, IdentityRole>(
                  options =>
                  {
-                     options.Password.RequiredLength = 10;
-                     options.Password.RequiredUniqueChars = 3;
+                     options.Password.RequiredLength = 6;
+                     options.Password.RequiredUniqueChars = 1;
                      //options.Password.RequireNonAlphanumeric = false;
                      //options.Password.RequireUppercase = true;
                      //options.Password.RequireLowercase = true;
