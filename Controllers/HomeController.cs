@@ -1,5 +1,6 @@
 ﻿using EmployeeManagement.Models;
 using EmployeeManagement.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EmployeeManagement.Controllers
@@ -17,6 +18,7 @@ namespace EmployeeManagement.Controllers
         [Route("")]
         [Route("~/")]
         [Route("~/Home")]
+        [AllowAnonymous]
         public ViewResult Index()
         {
             _logger.LogInformation("Employee list requested.");
@@ -30,6 +32,7 @@ namespace EmployeeManagement.Controllers
         }
 
         [HttpGet]
+        
         public IActionResult Edit(int id)
         {
             var employee = _employeeRepository.GetEmployee(id);
@@ -52,6 +55,7 @@ namespace EmployeeManagement.Controllers
         }
 
         [HttpPost]
+        
         public IActionResult Edit(EmployeeEditViewModel model)
         {
             try
@@ -147,6 +151,7 @@ namespace EmployeeManagement.Controllers
         }
 
         [Route("{id?}")]
+        [AllowAnonymous]
         public ViewResult Details(int? id)
         {
             try
@@ -243,6 +248,7 @@ namespace EmployeeManagement.Controllers
         }
 
         [HttpGet]
+        
         public IActionResult Delete(int id)
         {
             var employee = _employeeRepository.GetEmployee(id);
@@ -256,6 +262,7 @@ namespace EmployeeManagement.Controllers
         }
 
         [HttpPost, ActionName("Delete")]
+        
         public IActionResult DeleteConfirmed(int id)
         {
             try

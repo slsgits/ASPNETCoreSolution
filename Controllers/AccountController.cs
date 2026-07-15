@@ -1,4 +1,5 @@
 ﻿using EmployeeManagement.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,12 +15,14 @@ namespace EmployeeManagement.Controllers
         private readonly ILogger<HomeController> _logger = logger;
 
         [HttpGet]
+        [AllowAnonymous]
         public IActionResult Register()
         {
             return View();
         }
 
         [HttpPost]
+        [AllowAnonymous]
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
             if (!ModelState.IsValid)
@@ -56,13 +59,17 @@ namespace EmployeeManagement.Controllers
         }
 
         [HttpGet]
-        public IActionResult Login()
+        [AllowAnonymous]
+        public IActionResult Login(string? returnUrl)
         {
+            ViewBag.ReturnUrl = returnUrl;
             return View();
         }
 
         [HttpPost]
-        public async Task<IActionResult> Login(LoginViewModel model)
+        [AllowAnonymous]
+
+        public async Task<IActionResult> Login(LoginViewModel model, string? returnUrl)
         {
             if (!ModelState.IsValid)
             {
@@ -77,9 +84,18 @@ namespace EmployeeManagement.Controllers
             if (result.Succeeded)
             {
                 _logger.LogInformation(
-                       "User logged in : {Email}",
+                        "User logged in : {Email}",
                         model.Email);
-                return RedirectToAction("Index", "Home");
+
+                if (!string.IsNullOrEmpty(returnUrl) 
+                    && Url.IsLocalUrl(returnUrl))
+                {
+                    return Redirect(returnUrl);
+                }
+                else
+                {
+                    return RedirectToAction("Index", "Home");
+                }
             }
 
             _logger.LogWarning(
@@ -94,6 +110,21 @@ namespace EmployeeManagement.Controllers
             await _signInManager.SignOutAsync();
             _logger.LogInformation("User logged out : {Email}", User.Identity?.Name ?? "Unknown");
             return RedirectToAction("Index", "Home");
+        }
+
+        [AcceptVerbs("GET", "POST")]
+        [AllowAnonymous]
+        public async Task<IActionResult> IsEmailInUse(string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                return Json(true);
+            }
+            else
+            {
+                return Json($"Email {email} is already in use.");
+            }
         }
     }
 }

@@ -1,5 +1,7 @@
 using EmployeeManagement.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
 using NLog.Web;
 
@@ -12,7 +14,15 @@ builder.Logging.ClearProviders();
 builder.Host.UseNLog();
 
 // Register MVC services
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews(
+    // Add a global authorization filter to require authentication for all controllers
+    config =>
+    {
+        var policy = new AuthorizationPolicyBuilder()
+            .RequireAuthenticatedUser()
+            .Build();
+        config.Filters.Add(new AuthorizeFilter(policy));
+    });
 
 // Register your custom service
 builder.Services.AddDbContextPool<AppDBContext>(options =>

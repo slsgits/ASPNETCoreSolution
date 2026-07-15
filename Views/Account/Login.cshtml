@@ -7,6 +7,9 @@
 	<div class="col-md-12">
 		<form method="post" asp-controller="account" asp-action="login">
 			<div asp-validation-summary="All" class="text-danger"></div>
+			<input type="hidden"
+				   name="returnUrl"
+				   value="@ViewBag.ReturnUrl" />
 			<div class="mb-3">
 				<label asp-for="Email"></label>
 				<input asp-for="Email" class="form-control" />
