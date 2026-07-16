@@ -7,9 +7,11 @@ using Microsoft.AspNetCore.Mvc;
 namespace EmployeeManagement.Controllers
 {
     [Route("[controller]/[action]")]
-    public class AccountController(UserManager<ApplicationUser> userManager,
+    public class AccountController(
+           UserManager<ApplicationUser> userManager,
            SignInManager<ApplicationUser> signInManager,
-           ILogger<HomeController> logger) : Controller
+           ILogger<HomeController> logger) 
+         : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager = userManager;
         private readonly SignInManager<ApplicationUser> _signInManager = signInManager;
@@ -34,7 +36,7 @@ namespace EmployeeManagement.Controllers
             {
                 UserName = model.Email,
                 Email = model.Email,
-                City = model.City
+                City = model.City ?? string.Empty
             };
 
             var result = await _userManager.CreateAsync(user, model.Password);
