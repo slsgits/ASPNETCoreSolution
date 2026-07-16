@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 namespace EmployeeManagement.Models
 {
     public class AppDBContext(DbContextOptions<AppDBContext> options) 
-               : IdentityDbContext(options)
+               : IdentityDbContext<ApplicationUser>(options)
     {
         public DbSet<Employee> Employees { get; set; }
         public DbSet<EmployeePhoto> EmployeePhotos { get; set; }

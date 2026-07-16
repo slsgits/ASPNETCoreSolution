@@ -29,7 +29,7 @@ builder.Services.AddDbContextPool<AppDBContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("EmployeeDBConnection")));
 
 // Register identity services
-builder.Services.AddIdentity<IdentityUser, IdentityRole>(
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>(
                  options =>
                  {
                      options.Password.RequiredLength = 6;

@@ -1,4 +1,5 @@
-﻿using EmployeeManagement.ViewModels;
+﻿using EmployeeManagement.Models;
+using EmployeeManagement.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -6,12 +7,12 @@ using Microsoft.AspNetCore.Mvc;
 namespace EmployeeManagement.Controllers
 {
     [Route("[controller]/[action]")]
-    public class AccountController(UserManager<IdentityUser> userManager,
-           SignInManager<IdentityUser> signInManager,
+    public class AccountController(UserManager<ApplicationUser> userManager,
+           SignInManager<ApplicationUser> signInManager,
            ILogger<HomeController> logger) : Controller
     {
-        private readonly UserManager<IdentityUser> _userManager = userManager;
-        private readonly SignInManager<IdentityUser> _signInManager = signInManager;
+        private readonly UserManager<ApplicationUser> _userManager = userManager;
+        private readonly SignInManager<ApplicationUser> _signInManager = signInManager;
         private readonly ILogger<HomeController> _logger = logger;
 
         [HttpGet]
@@ -29,10 +30,11 @@ namespace EmployeeManagement.Controllers
             {
                 return View(model);
             }
-            var user = new IdentityUser()
+            var user = new ApplicationUser()
             {
                 UserName = model.Email,
-                Email = model.Email
+                Email = model.Email,
+                City = model.City
             };
 
             var result = await _userManager.CreateAsync(user, model.Password);
