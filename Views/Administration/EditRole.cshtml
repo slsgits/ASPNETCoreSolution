@@ -37,6 +37,13 @@
 					<p class="text-muted">No users are assigned to this role.</p>
 				}
 			</div>
+			<div class=""> 
+				<a asp-action="EditUsersInRole"
+				   asp-controller="Administration"
+				   asp-route-roleId = "@Model.Id"
+				   class="btn btn-primary w-auto">
+				Add Or Remove Users</a>
+			</div>
 		</form>
 	</div>
 </div>
