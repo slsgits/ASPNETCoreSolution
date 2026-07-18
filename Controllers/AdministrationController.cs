@@ -1,5 +1,6 @@
 ﻿using EmployeeManagement.Models;
 using EmployeeManagement.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +8,11 @@ using Microsoft.EntityFrameworkCore;
 namespace EmployeeManagement.Controllers
 {
     [Route("[controller]/[action]")]
+    [Authorize(Roles = "Admin")]         //case 1 : User should have Admin role.
+    //[Authorize(Roles = "Admin, User")] //case 2 : user should have Admin or User role
+    //[Authorize(Roles = "Admin")]       //case 3 : user should have both Admin and User role
+    //[Authorize(Roles = "User")]        //case 3 : user should have both Admin and User role
+
     public class AdministrationController(
                  RoleManager<IdentityRole> roleManager,
                  UserManager<ApplicationUser> userManager) : Controller
@@ -14,6 +20,11 @@ namespace EmployeeManagement.Controllers
         private readonly RoleManager<IdentityRole> _roleManager = roleManager;
         private readonly UserManager<ApplicationUser> _userManager = userManager;
 
+        [HttpGet]
+        public IActionResult TestRole()
+        {
+            return Content(User.IsInRole("Admin").ToString());
+        }
         [HttpGet]
         public IActionResult ListRoles()
         {
