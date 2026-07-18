@@ -210,5 +210,63 @@ namespace EmployeeManagement.Controllers
 
             return RedirectToAction("EditRole", new { Id = roleId });
         }
+
+        [HttpGet]
+        public IActionResult ListUsers()
+        {
+            return View(_userManager.Users);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> EditUser(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null)
+            {
+                ViewBag.ErrorMessage = $"User with Id = {id} cannot be found";
+                return View("NotFound");
+            }
+
+            var userRoles = await _userManager.GetRolesAsync(user);
+            var userClaims = await _userManager.GetClaimsAsync(user);
+            
+            var model = new EditUserViewModel
+            {
+                Id = user.Id,
+                Email = user.Email ?? string.Empty,
+                UserName = user.UserName ?? string.Empty,
+                City = user.City ?? string.Empty,
+                Roles = userRoles.ToList(),
+                Claims = userClaims.Select(c => c.Type + ": " + c.Value).ToList()
+            };
+            return View(model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditUser(EditUserViewModel model)
+        {
+            var user = await _userManager.FindByIdAsync(model.Id);
+            if (user == null)
+            {
+                ViewBag.ErrorMessage = $"User with Id = {model.Id} cannot be found";
+                return View("NotFound");
+            }
+            else
+            {
+                user.Email = model.Email;
+                user.UserName = model.UserName;
+                user.City = model.City;
+                var result = await _userManager.UpdateAsync(user);
+                if (result.Succeeded)
+                {
+                    return RedirectToAction("ListUsers");
+                }
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError("", error.Description);
+                }
+                return View(model);
+            }
+        }
     }
 }

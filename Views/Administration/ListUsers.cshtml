@@ -1,0 +1,58 @@
+﻿@model IEnumerable<ApplicationUser>
+@{
+	ViewBag.Title = "All Users";
+}
+<h1>@ViewBag.Title</h1>
+@if(Model.Any())
+{
+	<a asp-action="register"
+	   asp-controller="account"
+	   class="btn btn-primary w-auto mb-3">
+		Add New User
+	</a>
+	@foreach(var user in Model)
+	{
+		<div class="card mb-3">
+			<div class="card-header">
+				User ID: @user.Id
+			</div>
+			<div class="card-body">
+				<h5 class="card-title">
+					@user.UserName
+				</h5>
+			</div>
+			<div class="card-footer">
+				<a asp-action="EditUser"
+				   asp-controller="Administration"
+				   asp-route-id="@user.Id"
+				   class="btn btn-primary w-auto">
+					Edit
+				</a>
+				<a asp-action="DeleteUser"
+				   asp-controller="Administration"
+				   asp-route-id="@user.Id"
+				   class="btn btn-danger w-auto">
+					Delete
+				</a>
+			</div>
+		</div>
+	}
+}
+else
+{
+	<div class="card">
+		<div class="card-header">
+			No Users Created Yet.
+		</div>
+		<div class="card-body">
+			<h5 class="card-title">
+				Use the button below to add a user.
+			</h5>
+			<a asp-action="register" 
+			   asp-controller="account"
+			   class="btn btn-primary w-auto">
+				Add New User
+		   </a>
+		</div>
+	</div>
+}
