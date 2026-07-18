@@ -10,7 +10,7 @@ namespace EmployeeManagement.Controllers
     public class AccountController(
            UserManager<ApplicationUser> userManager,
            SignInManager<ApplicationUser> signInManager,
-           ILogger<HomeController> logger) 
+           ILogger<HomeController> logger)
          : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager = userManager;
@@ -79,10 +79,10 @@ namespace EmployeeManagement.Controllers
             {
                 return View(model);
             }
-           
+
             var result = await _signInManager
-                        .PasswordSignInAsync(model.Email, model.Password, 
-                                             model.RememberMe, 
+                        .PasswordSignInAsync(model.Email, model.Password,
+                                             model.RememberMe,
                                              lockoutOnFailure: false);
 
             if (result.Succeeded)
@@ -91,7 +91,7 @@ namespace EmployeeManagement.Controllers
                         "User logged in : {Email}",
                         model.Email);
 
-                if (!string.IsNullOrEmpty(returnUrl) 
+                if (!string.IsNullOrEmpty(returnUrl)
                     && Url.IsLocalUrl(returnUrl))
                 {
                     return Redirect(returnUrl);
@@ -105,7 +105,7 @@ namespace EmployeeManagement.Controllers
             _logger.LogWarning(
                    "User login failed : {Email}.",
                    model.Email);
-           
+
             ModelState.AddModelError(string.Empty, "Invalid Login Attempt!");
             return View(model);
         }
@@ -129,6 +129,13 @@ namespace EmployeeManagement.Controllers
             {
                 return Json($"Email {email} is already in use.");
             }
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult AccessDenied()
+        {
+            return View();
         }
     }
 }
