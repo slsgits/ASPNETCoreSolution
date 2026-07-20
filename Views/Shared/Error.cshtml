@@ -1,7 +1,10 @@
-﻿@{
-    ViewBag.Title = "Error";
+﻿@if (!string.IsNullOrEmpty(ViewBag.Title))
+{
+    <h1 class="text-danger">@ViewBag.Title</h1>
+    <h6 class="alert-danger">@ViewBag.ErrorMessage</h6>
 }
-
+else
+{
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-8">
@@ -19,29 +22,9 @@
                             shantilal.suthar@yahoo.com
                         </a>
                     </p>
-
-@*                     <hr />
-
-                    <h5 class="text-danger">Exception Details</h5>
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item">
-                            <strong>Path:</strong> @ViewBag.ExceptionPath
-                        </li>
-                        <li class="list-group-item">
-                            <strong>Message:</strong> @ViewBag.ExceptionMessage
-                        </li>
-                        <li class="list-group-item">
-                            <strong>Stack Trace:</strong>
-                            <pre class="bg-light p-2 border rounded">@ViewBag.StackTrace</pre>
-                        </li>
-                    </ul>
-                </div>
-                <div class="card-footer text-center">
-                    <a asp-action="Index" asp-controller="Home" class="btn btn-primary w-auto">
-                        Back to Home
-                    </a>
-                </div> *@
+                </div> 
             </div>
         </div>
     </div>
 </div>
+}

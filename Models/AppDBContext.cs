@@ -12,13 +12,20 @@ namespace EmployeeManagement.Models
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<EmployeePhoto>()
-                .HasOne(p => p.Employee)
-                .WithMany(e => e.Photos)
-                .HasForeignKey(p => p.EmployeeId)
-                .OnDelete(DeleteBehavior.Cascade); ;
+            //modelBuilder.Entity<EmployeePhoto>()
+            //    .HasOne(p => p.Employee)
+            //    .WithMany(e => e.Photos)
+            //    .HasForeignKey(p => p.EmployeeId)
+            //    .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Seed();
+
+            foreach (var foreignKey in modelBuilder.Model
+                                       .GetEntityTypes()
+                                       .SelectMany(e => e.GetForeignKeys()))
+            {
+               foreignKey.DeleteBehavior = DeleteBehavior.Restrict;
+            }
         }
     }
 }

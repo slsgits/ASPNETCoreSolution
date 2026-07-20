@@ -1,4 +1,5 @@
-﻿using EmployeeManagement.Models;
+﻿using System.Data;
+using EmployeeManagement.Models;
 using EmployeeManagement.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -15,10 +16,12 @@ namespace EmployeeManagement.Controllers
 
     public class AdministrationController(
                  RoleManager<IdentityRole> roleManager,
-                 UserManager<ApplicationUser> userManager) : Controller
+                 UserManager<ApplicationUser> userManager,
+                 ILogger<AdministrationController> logger) : Controller
     {
         private readonly RoleManager<IdentityRole> _roleManager = roleManager;
         private readonly UserManager<ApplicationUser> _userManager = userManager;
+        private readonly ILogger<AdministrationController> _logger = logger;
 
         [HttpGet]
         public IActionResult TestRole()
@@ -214,6 +217,8 @@ namespace EmployeeManagement.Controllers
         [HttpPost]
         public async Task<IActionResult> DeleteRole(string id)
         {
+            
+
             var role = await _roleManager.FindByIdAsync(id);
 
             if (role == null)
@@ -222,19 +227,30 @@ namespace EmployeeManagement.Controllers
                 return View("NotFound");
             }
 
-            var result = await _roleManager.DeleteAsync(role);
-
-            if (result.Succeeded)
+            try
             {
-                return RedirectToAction("ListRoles");
-            }
+                var result = await _roleManager.DeleteAsync(role);
 
-            foreach (var error in result.Errors)
+                if (result.Succeeded)
+                {
+                    return RedirectToAction("ListRoles");
+                }
+
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError("", error.Description);
+                }
+
+                return View("ListRoles");
+            }
+            catch (DbUpdateException ex)
             {
-                ModelState.AddModelError("", error.Description);
+                _logger.LogError($"Error deleting role: {ex}");
+                ViewBag.Title = $"{role.Name} role is in use.";
+                ViewBag.ErrorMessage = $"The {role.Name} role cannot be deleted as there are users in this role. " +
+                                       $"If you want to delete this role, please remove the users from the role and then try to delete.";
+                return View("Error");
             }
-
-            return View("ListRoles");
         }
         [HttpGet]
         public IActionResult ListUsers()
@@ -307,19 +323,31 @@ namespace EmployeeManagement.Controllers
                 return View("NotFound");
             }
 
-            var result = await _userManager.DeleteAsync(user);
-
-            if (result.Succeeded)
+            try
             {
-                return RedirectToAction("ListUsers");
-            }
+                var result = await _userManager.DeleteAsync(user);
 
-            foreach (var error in result.Errors)
+                if (result.Succeeded)
+                {
+                    return RedirectToAction("ListUsers");
+                }
+
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError("", error.Description);
+                }
+
+                return View("ListUsers");
+            }
+            catch (DbUpdateException ex)
             {
-                ModelState.AddModelError("", error.Description);
-            }
+                _logger.LogError($"Error deleting user: {ex}");
+                ViewBag.Title = $"{user.UserName} user is in use.";
+                ViewBag.ErrorMessage = $"The {user.UserName} user cannot be deleted as it is linked with other data." +
+                                       $"If you want to delete this user, please remove the dependencies from the user and then try to delete.";
 
-            return View("ListUsers");
+                return View("Error");
+            }
         }
     }
 }
