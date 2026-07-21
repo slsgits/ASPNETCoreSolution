@@ -29,6 +29,12 @@ builder.Services.AddDbContextPool<AppDBContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("EmployeeDBConnection")));
 
 // Register identity services
+// Add authorization policies
+builder.Services.AddAuthorizationBuilder()
+                .AddPolicy("DeleteRolePolicy", policy => policy
+                           .RequireClaim("Delete Role")
+                           .RequireClaim("Create Role"));
+
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(
                  options =>
                  {
