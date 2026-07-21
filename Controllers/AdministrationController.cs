@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using AspNetCoreGeneratedDocument;
 using EmployeeManagement.Models;
 using EmployeeManagement.ViewModels;
 using Microsoft.AspNetCore.Authorization;
@@ -348,6 +349,80 @@ namespace EmployeeManagement.Controllers
 
                 return View("Error");
             }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ManageUserRoles(string userId)
+        {
+            ViewBag.userId = userId;
+
+            var user = await _userManager.FindByIdAsync(userId);
+
+            if (user == null)
+            {
+                ViewBag.ErrorMessage = $"User with Id = {userId} cannot be found";
+                return View("NotFound");
+            }
+
+            var model = new List<UserRolesViewModel>();
+            foreach (var role in await _roleManager.Roles.ToListAsync())
+            {
+                var userRolesViewModel = new UserRolesViewModel
+                {
+                    RoleId = role.Id,
+                    RoleName = role.Name ?? string.Empty,
+                    IsSelected = await _userManager.IsInRoleAsync(user, role.Name ?? string.Empty)
+                };
+                model.Add(userRolesViewModel);
+            }
+
+            return View(model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ManageUserRoles(List<UserRolesViewModel> userRolesViewModels,string userId)
+        {
+            // Find the user by ID
+            var user = await _userManager.FindByIdAsync(userId);
+
+            // If the user is not found, return a NotFound view with an error message
+            if (user == null)
+            {
+                ViewBag.ErrorMessage = $"User with Id = {userId} cannot be found";
+                return View("NotFound");
+            }
+
+            // Get the current roles of the user
+            var currentRoles = await _userManager.GetRolesAsync(user);
+            
+            // Remove the user from all current roles
+            var result = await _userManager.RemoveFromRolesAsync(user, currentRoles);
+
+            // If the removal of roles failed, add an error message to the ModelState
+            // and return the view with the userRolesViewModels
+            if (!result.Succeeded)
+            {
+                ModelState.AddModelError("", "Cannot remove user existing roles");
+                return View(userRolesViewModels);
+            }
+
+            // Get the selected roles from the userRolesViewModels
+            var selectedRoles = userRolesViewModels.Where(x => x.IsSelected)
+                                                   .Select(y => y.RoleName)
+                                                   .ToList();
+
+            // Add the user to the selected roles
+            result = await _userManager.AddToRolesAsync(user, selectedRoles);
+
+            // If the addition of roles failed, add an error message to the ModelState
+            if (!result.Succeeded)
+            {
+                ModelState.AddModelError("", "Cannot add selected roles to user");
+                return View(userRolesViewModels);
+            }
+
+            // If everything succeeded, redirect to the EditUser action with the userId
+            return RedirectToAction("EditUser", new { id = userId });
         }
     }
 }
