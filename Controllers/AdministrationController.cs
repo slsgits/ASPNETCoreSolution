@@ -1,6 +1,5 @@
 ﻿using System.Data;
 using System.Security.Claims;
-using AspNetCoreGeneratedDocument;
 using EmployeeManagement.Models;
 using EmployeeManagement.ViewModels;
 using Microsoft.AspNetCore.Authorization;
@@ -11,7 +10,8 @@ using Microsoft.EntityFrameworkCore;
 namespace EmployeeManagement.Controllers
 {
     [Route("[controller]/[action]")]
-    [Authorize(Roles = "Admin")]         //case 1 : User should have Admin role.
+    [Authorize(Policy = "AdminRolePolicy")]
+    //[Authorize(Roles = "Admin")]         //case 1 : User should have Admin role.
     //[Authorize(Roles = "Admin, User")] //case 2 : user should have Admin or User role
     //[Authorize(Roles = "Admin")]       //case 3 : user should have both Admin and User role
     //[Authorize(Roles = "User")]        //case 3 : user should have both Admin and User role
@@ -43,6 +43,8 @@ namespace EmployeeManagement.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = "DeleteRolePolicy")]
+
         public async Task<IActionResult> CreateRole(CreateRoleViewModel model)
         {
             if (ModelState.IsValid)
@@ -94,6 +96,8 @@ namespace EmployeeManagement.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = "DeleteRolePolicy")]
+
         public async Task<IActionResult> EditRole(EditRoleViewModel model)
         {
             var role = await _roleManager.FindByIdAsync(model.Id);
