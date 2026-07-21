@@ -73,7 +73,7 @@
 			{
 				@foreach (var claim in Model.Claims)
 				{
-					<h5 class="card-title">@claim</h5>
+					<h5 class="card-title">@claim.ClaimType</h5>
 				}
 			}
 			else
@@ -82,7 +82,9 @@
 			}
 		</div>
 		<div class="card-footer">
-			<a href="#" class="btn btn-primary w-auto">Manage Claims</a>
+			<a asp-action="ManageUserClaims"
+			   asp-route-userId="@Model.Id" 
+			   class="btn btn-primary w-auto">Manage Claims</a>
 		</div>
 	</div>
 </form>

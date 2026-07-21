@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using EmployeeManagement.Models;
 
 namespace EmployeeManagement.ViewModels
 {
@@ -13,6 +14,6 @@ namespace EmployeeManagement.ViewModels
         public string UserName { get; set; } = string.Empty;
         public string City { get; set; } = string.Empty;
         public List<string> Roles { get; set; } = [];
-        public IList<string> Claims { get; set; } = [];
+        public List<UserClaim> Claims { get; set; } = [];
     }
 }

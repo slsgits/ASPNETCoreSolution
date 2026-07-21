@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using System.Security.Claims;
 using AspNetCoreGeneratedDocument;
 using EmployeeManagement.Models;
 using EmployeeManagement.ViewModels;
@@ -271,7 +272,7 @@ namespace EmployeeManagement.Controllers
 
             var userRoles = await _userManager.GetRolesAsync(user);
             var userClaims = await _userManager.GetClaimsAsync(user);
-            
+
             var model = new EditUserViewModel
             {
                 Id = user.Id,
@@ -279,7 +280,7 @@ namespace EmployeeManagement.Controllers
                 UserName = user.UserName ?? string.Empty,
                 City = user.City ?? string.Empty,
                 Roles = userRoles.ToList(),
-                Claims = userClaims.Select(c => c.Type + ": " + c.Value).ToList()
+                Claims = [.. userClaims.Select(c => new UserClaim { ClaimType = c.Type })]
             };
             return View(model);
         }
@@ -423,6 +424,88 @@ namespace EmployeeManagement.Controllers
 
             // If everything succeeded, redirect to the EditUser action with the userId
             return RedirectToAction("EditUser", new { id = userId });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ManageUserClaims(string userId)
+        {
+            //get user by ID
+            var user = await _userManager.FindByIdAsync(userId);
+
+            //Check if user is null
+            if (user == null)
+            {
+                ViewBag.ErrorMessage = $"User with Id = {userId} cannot be found";
+                return View("NotFound");
+            }
+
+            // UserManager service GetClaimsAsync method gets all the current claims of the user
+            var existingUserClaims = await _userManager.GetClaimsAsync(user);
+
+            //user claim view model instance creation
+            var model = new UserClaimsViewModel
+            {
+                UserId = userId
+            };
+
+            // Loop through each claim we have in our application
+            foreach (string claimType in ClaimsStore.AllClaims)
+            {
+                UserClaim userClaim = new()
+                {
+                    ClaimType = claimType,
+                    // If the user has the claim, set IsSelected property
+                    // to true, so the checkbox
+                    // next to the claim is checked on the UI
+                    IsSelected = existingUserClaims.Any(c => c.Type == claimType)
+                };
+                model.Claims.Add(userClaim);
+            }
+
+            return View(model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ManageUserClaims(UserClaimsViewModel model)
+        {
+            //Get user by Id
+            var user = await _userManager.FindByIdAsync(model.UserId);
+
+            //check if user is null
+            if (user == null)
+            {
+                ViewBag.ErrorMessage = $"User with Id = {model.UserId} cannot be found";
+                return View("NotFound");
+            }
+
+            // Get all the user existing claims and delete them
+            var claims = await _userManager.GetClaimsAsync(user);
+            var result = await _userManager.RemoveClaimsAsync(user, claims);
+
+            // If the removal of claims failed, add an error message
+            // to the ModelState
+            if (!result.Succeeded)
+            {
+                ModelState.AddModelError("", "Cannot remove user existing claims");
+                return View(model);
+            }
+
+            // Add all the claims that are selected on the UI
+            result = await _userManager
+                    .AddClaimsAsync(user,
+                    model.Claims.Where(c => c.IsSelected)
+                    .Select(c => new Claim(c.ClaimType, c.ClaimType)));
+
+            // If the addition of claims failed, add an error message
+            // to the ModelState
+            if (!result.Succeeded)
+            {
+                ModelState.AddModelError("", "Cannot add selected claims to user");
+                return View(model);
+            }
+
+            return RedirectToAction("EditUser", new { Id = model.UserId });
+
         }
     }
 }
