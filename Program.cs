@@ -63,6 +63,13 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(
                 .AddEntityFrameworkStores<AppDBContext>();
 
 builder.Services.AddScoped<IEmployeeRepository, SQLEmployeeRepository>();
+
+// Add authentication cookie configuration
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.AccessDeniedPath = "/Administration/AccessDenied";
+});
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())

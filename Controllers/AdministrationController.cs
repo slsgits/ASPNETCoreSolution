@@ -27,6 +27,13 @@ namespace EmployeeManagement.Controllers
         private readonly ILogger<AdministrationController> _logger = logger;
 
         [HttpGet]
+        [AllowAnonymous]
+        public IActionResult AccessDenied()
+        {
+            return View();
+        }
+
+        [HttpGet]
         public IActionResult TestRole()
         {
             return Content(User.IsInRole("Admin").ToString());
