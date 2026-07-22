@@ -32,16 +32,15 @@ builder.Services.AddDbContextPool<AppDBContext>(options =>
 // Add claim based authorization policies
 builder.Services.AddAuthorizationBuilder()
                 .AddPolicy("CreateRolePolicy", policy => policy
-                           .RequireClaim("Create Role"));
+                           .RequireClaim("Create Role", "true"));
 
 builder.Services.AddAuthorizationBuilder()
                 .AddPolicy("EditRolePolicy", policy => policy
-                           .RequireClaim("Edit Role"));
+                           .RequireClaim("Edit Role", "true"));
 
 builder.Services.AddAuthorizationBuilder()
                 .AddPolicy("DeleteRolePolicy", policy => policy
-                           .RequireClaim("Delete Role"));
-
+                           .RequireClaim("Delete Role", "true"));
 
 // Add role based authorization policies
 builder.Services.AddAuthorizationBuilder()

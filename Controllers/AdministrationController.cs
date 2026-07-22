@@ -292,7 +292,11 @@ namespace EmployeeManagement.Controllers
                 UserName = user.UserName ?? string.Empty,
                 City = user.City ?? string.Empty,
                 Roles = userRoles.ToList(),
-                Claims = [.. userClaims.Select(c => new UserClaim { ClaimType = c.Type })]
+                Claims = [.. userClaims.Select(c => new UserClaim
+                                        {
+                                          ClaimType = $"{c.Type} : {c.Value}",
+                                          IsSelected = true
+                                        })]
             };
             return View(model);
         }
@@ -461,15 +465,15 @@ namespace EmployeeManagement.Controllers
             };
 
             // Loop through each claim we have in our application
-            foreach (string claimType in ClaimsStore.AllClaims)
+            foreach (Claim claim in ClaimsStore.AllClaims)
             {
                 UserClaim userClaim = new()
                 {
-                    ClaimType = claimType,
+                    ClaimType = claim.Type,
                     // If the user has the claim, set IsSelected property
                     // to true, so the checkbox
                     // next to the claim is checked on the UI
-                    IsSelected = existingUserClaims.Any(c => c.Type == claimType)
+                    IsSelected = existingUserClaims.Any(c => c.Type == claim.Type && c.Value == "true")
                 };
                 model.Claims.Add(userClaim);
             }
@@ -505,8 +509,8 @@ namespace EmployeeManagement.Controllers
             // Add all the claims that are selected on the UI
             result = await _userManager
                     .AddClaimsAsync(user,
-                    model.Claims.Where(c => c.IsSelected)
-                    .Select(c => new Claim(c.ClaimType, c.ClaimType)));
+                    model.Claims
+                    .Select(c => new Claim(c.ClaimType, c.IsSelected ? "true" : "false")));
 
             // If the addition of claims failed, add an error message
             // to the ModelState

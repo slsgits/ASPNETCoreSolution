@@ -1,12 +1,14 @@
-﻿namespace EmployeeManagement.Models
+﻿using System.Security.Claims;
+
+namespace EmployeeManagement.Models
 {
     public static class ClaimsStore
     {
-        public static readonly List<string> AllClaims =
+        public static readonly List<Claim> AllClaims =
         [
-            "Create Role",
-            "Edit Role",
-            "Delete Role",
+            new Claim("Create Role", "true"),
+            new Claim("Edit Role", "true"),
+            new Claim("Delete Role", "true"),
             //"Create User",
             //"Edit User",
             //"Delete User"
