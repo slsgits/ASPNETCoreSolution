@@ -10,7 +10,8 @@ using Microsoft.EntityFrameworkCore;
 namespace EmployeeManagement.Controllers
 {
     [Route("[controller]/[action]")]
-    [Authorize(Policy = "AdminRolePolicy")]
+    [Authorize(Policy = "AdminRolePolicy")] //Role based authorization policy applied to the controller. Only users with the "Admin" role can access the actions in this controller.
+
     //[Authorize(Roles = "Admin")]         //case 1 : User should have Admin role.
     //[Authorize(Roles = "Admin, User")] //case 2 : user should have Admin or User role
     //[Authorize(Roles = "Admin")]       //case 3 : user should have both Admin and User role
@@ -37,14 +38,14 @@ namespace EmployeeManagement.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = "CreateRolePolicy")]
         public IActionResult CreateRole()
         {
             return View();
         }
 
         [HttpPost]
-        [Authorize(Policy = "DeleteRolePolicy")]
-
+        [Authorize(Policy = "CreateRolePolicy")]
         public async Task<IActionResult> CreateRole(CreateRoleViewModel model)
         {
             if (ModelState.IsValid)
@@ -70,6 +71,7 @@ namespace EmployeeManagement.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = "EditRolePolicy")]
         public async Task<IActionResult> EditRole(string id) { 
           var role = await _roleManager.FindByIdAsync(id);
             if (role == null) { 
@@ -96,7 +98,7 @@ namespace EmployeeManagement.Controllers
         }
 
         [HttpPost]
-        [Authorize(Policy = "DeleteRolePolicy")]
+        [Authorize(Policy = "EditRolePolicy")]
 
         public async Task<IActionResult> EditRole(EditRoleViewModel model)
         {
@@ -224,8 +226,6 @@ namespace EmployeeManagement.Controllers
         [Authorize(Policy = "DeleteRolePolicy")]
         public async Task<IActionResult> DeleteRole(string id)
         {
-            
-
             var role = await _roleManager.FindByIdAsync(id);
 
             if (role == null)

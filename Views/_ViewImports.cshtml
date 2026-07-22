@@ -1,4 +1,11 @@
-﻿@using EmployeeManagement.ViewModels;
+﻿@* Import namespaces *@
+@using EmployeeManagement.ViewModels;
 @using EmployeeManagement.Models;
 @using Microsoft.AspNetCore.Identity;
+@using Microsoft.AspNetCore.Authorization;
+
+@* Import tag helper *@
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+@* Inject service *@
+@inject IAuthorizationService authorizationService
