@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 namespace EmployeeManagement.Controllers
 {
     [Route("[controller]/[action]")]
-    [Authorize(Policy = "AdminRolePolicy")] //Role based authorization policy applied to the controller. Only users with the "Admin" role can access the actions in this controller.
+    //[Authorize(Policy = "AdminRolePolicy")] //Role based authorization policy applied to the controller. Only users with the "Admin" role can access the actions in this controller.
 
     //[Authorize(Roles = "Admin")]         //case 1 : User should have Admin role.
     //[Authorize(Roles = "Admin, User")] //case 2 : user should have Admin or User role

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using NLog.Web;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -36,7 +37,7 @@ builder.Services.AddAuthorizationBuilder()
 
 builder.Services.AddAuthorizationBuilder()
                 .AddPolicy("EditRolePolicy", policy => policy
-                           .RequireClaim("Edit Role", "true"));
+                           .RequireAssertion(context => AuthorizeAccess(context)));
 
 builder.Services.AddAuthorizationBuilder()
                 .AddPolicy("DeleteRolePolicy", policy => policy
@@ -88,3 +89,12 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.Run();
+
+// Custom authorization logic for EditRolePolicy
+static bool AuthorizeAccess(AuthorizationHandlerContext context)
+{
+    return (context.User.IsInRole("Admin") &&
+           context.User.HasClaim(c => c.Type == "Edit Role" && c.Value == "true")) ||
+           context.User.IsInRole("Super Admin");
+}
+
