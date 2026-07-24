@@ -37,14 +37,11 @@ builder.Services.AddAuthorizationBuilder()
                            .RequireClaim("Create Role", "true"));
 
 builder.Services.AddAuthorizationBuilder()
-    .AddPolicy("EditRolePolicy", 
-        policy =>
-        {
-            policy.RequireRole("Admin");
-            policy.RequireClaim("Edit Role", "true");
-            policy.AddRequirements(
-                new ManageAdminRolesAndClaimsRequirement());
-        });
+    .AddPolicy("EditRolePolicy", policy =>
+    {
+        policy.AddRequirements(
+            new ManageAdminRolesAndClaimsRequirement());
+    });
 
 builder.Services.AddAuthorizationBuilder()
                 .AddPolicy("DeleteRolePolicy", policy => policy

@@ -282,13 +282,34 @@ namespace EmployeeManagement.Controllers
                 return View("NotFound");
             }
 
-            // Set the LoggedInUserId in the ViewBag to the ID of
-            // the currently logged-in user
-            ViewBag.LoggedInUserId = _userManager.GetUserId(User);
+            // Logged-in user information
+            string loggedInUserId = _userManager.GetUserId(User) ?? string.Empty;
+            bool isLoggedInUserSuperAdmin = User.IsInRole("Super Admin");
+            bool isTargetUserSuperAdmin = await _userManager.IsInRoleAsync(user, "Super Admin");
+            bool isEditingOwnAccount = loggedInUserId == user.Id;
 
+            // Determine whether the logged-in user can manage this user
+            ViewBag.CanManageUser = isLoggedInUserSuperAdmin ||
+                                   (!isEditingOwnAccount && !isTargetUserSuperAdmin);
+
+            // Set authorization message (if applicable)
+            if (isEditingOwnAccount)
+            {
+                ViewBag.AuthorizationMessage =
+                    "You cannot modify your own details.";
+            }
+            else if (!isLoggedInUserSuperAdmin && isTargetUserSuperAdmin)
+            {
+                ViewBag.AuthorizationMessage =
+                    "You are not authorized to modify a Super Admin's details.";
+            }
+
+            // Get the roles and claims of the user being edited
             var userRoles = await _userManager.GetRolesAsync(user);
             var userClaims = await _userManager.GetClaimsAsync(user);
 
+            // Create an instance of EditUserViewModel and
+            // populate it with the user's details, roles, and claims
             var model = new EditUserViewModel
             {
                 Id = user.Id,

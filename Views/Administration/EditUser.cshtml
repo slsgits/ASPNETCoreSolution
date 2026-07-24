@@ -1,7 +1,7 @@
 ﻿@model EditUserViewModel
 @{
   ViewBag.Title = "Edit User";
-  bool canManageUser = ViewBag.LoggedInUserId != Model.Id;
+	bool disableInputs = !ViewBag.CanManageUser;
 }
 <h1>@ViewBag.Title</h1>
 <form asp-action="EditUser" 
@@ -11,6 +11,7 @@
 	<div asp-validation-summary="All" class="text-danger"></div>
 
 	<input type="hidden" asp-for="Id" />
+	<fieldset disabled="@disableInputs">
 	<div class="form-group row">
 		<label asp-for="UserName" class="col-sm-2 col-form-label"></label>
 		<div class="col-sm-10 mb-3">
@@ -32,9 +33,10 @@
 			<span asp-validation-for="City" class="text-danger"></span>
 		</div>
 	</div>
+	</fieldset>
 	<div class="form-group row mt-3 mb-3">
 		<div class="col-sm-10">
-			@if (canManageUser)
+			@if (ViewBag.CanManageUser)
 			{
 				<button type="submit"
 				class="btn btn-primary">
@@ -46,6 +48,12 @@
 			   class="btn btn-secondary">Cancel</a>
 		</div>
 	</div>
+	@if (!ViewBag.CanManageUser)
+	{
+		<div class="alert alert-info fw-bold">
+			@ViewBag.AuthorizationMessage
+		</div>
+	}
 
 	<div class="card">
 		<div class="card-header">
@@ -65,17 +73,11 @@
 			}
 		</div>
 		<div class="card-footer">
-			@if (canManageUser)
+			@if (ViewBag.CanManageUser)
             {
 			<a asp-action="ManageUserRoles"
 			   asp-route-userId="@Model.Id"
 			   class="btn btn-primary w-auto">Manage Roles</a>
-			}
-			else
-			{
-				<div class="alert alert-info fw-bold">
-					You cannot modify your own roles or claims.
-				</div>
 			}
 		</div>
 	</div>
@@ -98,7 +100,7 @@
 			}
 		</div>
 		<div class="card-footer">
-			@if (canManageUser)
+			@if (ViewBag.CanManageUser)
 			{
 			<a asp-action="ManageUserClaims"
 			   asp-route-userId="@Model.Id" 
