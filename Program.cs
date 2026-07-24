@@ -1,4 +1,5 @@
 using EmployeeManagement.Models;
+using EmployeeManagement.Security;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Authorization;
@@ -36,8 +37,14 @@ builder.Services.AddAuthorizationBuilder()
                            .RequireClaim("Create Role", "true"));
 
 builder.Services.AddAuthorizationBuilder()
-                .AddPolicy("EditRolePolicy", policy => policy
-                           .RequireAssertion(context => AuthorizeAccess(context)));
+    .AddPolicy("EditRolePolicy", 
+        policy =>
+        {
+            policy.RequireRole("Admin");
+            policy.RequireClaim("Edit Role", "true");
+            policy.AddRequirements(
+                new ManageAdminRolesAndClaimsRequirement());
+        });
 
 builder.Services.AddAuthorizationBuilder()
                 .AddPolicy("DeleteRolePolicy", policy => policy
@@ -63,6 +70,11 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(
                 .AddEntityFrameworkStores<AppDBContext>();
 
 builder.Services.AddScoped<IEmployeeRepository, SQLEmployeeRepository>();
+
+// Register the custom authorization handler
+builder.Services.AddSingleton<
+    IAuthorizationHandler, 
+    CanEditOnlyOtherAdminRolesAndClaimsHandler>();
 
 // Add authentication cookie configuration
 builder.Services.ConfigureApplicationCookie(options =>

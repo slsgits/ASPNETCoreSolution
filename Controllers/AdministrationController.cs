@@ -20,11 +20,13 @@ namespace EmployeeManagement.Controllers
     public class AdministrationController(
                  RoleManager<IdentityRole> roleManager,
                  UserManager<ApplicationUser> userManager,
-                 ILogger<AdministrationController> logger) : Controller
+                 ILogger<AdministrationController> logger,
+                 IAuthorizationService authorizationService) : Controller
     {
         private readonly RoleManager<IdentityRole> _roleManager = roleManager;
         private readonly UserManager<ApplicationUser> _userManager = userManager;
         private readonly ILogger<AdministrationController> _logger = logger;
+        private readonly IAuthorizationService _authorizationService = authorizationService;
 
         [HttpGet]
         [AllowAnonymous]
@@ -78,7 +80,6 @@ namespace EmployeeManagement.Controllers
         }
 
         [HttpGet]
-        [Authorize(Policy = "EditRolePolicy")]
         public async Task<IActionResult> EditRole(string id) { 
           var role = await _roleManager.FindByIdAsync(id);
             if (role == null) { 
@@ -105,7 +106,6 @@ namespace EmployeeManagement.Controllers
         }
 
         [HttpPost]
-        [Authorize(Policy = "EditRolePolicy")]
 
         public async Task<IActionResult> EditRole(EditRoleViewModel model)
         {
@@ -282,6 +282,10 @@ namespace EmployeeManagement.Controllers
                 return View("NotFound");
             }
 
+            // Set the LoggedInUserId in the ViewBag to the ID of
+            // the currently logged-in user
+            ViewBag.LoggedInUserId = _userManager.GetUserId(User);
+
             var userRoles = await _userManager.GetRolesAsync(user);
             var userClaims = await _userManager.GetClaimsAsync(user);
 
@@ -369,8 +373,20 @@ namespace EmployeeManagement.Controllers
         }
 
         [HttpGet]
+        
         public async Task<IActionResult> ManageUserRoles(string userId)
         {
+            var authorizationResult =
+                await _authorizationService.AuthorizeAsync(
+                User,
+                userId,
+                "EditRolePolicy");
+
+            if (!authorizationResult.Succeeded)
+            {
+                return Forbid();
+            }
+
             ViewBag.userId = userId;
 
             var user = await _userManager.FindByIdAsync(userId);
@@ -397,8 +413,21 @@ namespace EmployeeManagement.Controllers
         }
 
         [HttpPost]
+        
         public async Task<IActionResult> ManageUserRoles(List<UserRolesViewModel> userRolesViewModels,string userId)
         {
+            // Check if the user has the required authorization to
+            // manage roles
+            var authorizationResult =
+                await _authorizationService.AuthorizeAsync(
+                User,
+                userId,
+                "EditRolePolicy");
+
+            if (!authorizationResult.Succeeded)
+            {
+                return Forbid();
+            }
             // Find the user by ID
             var user = await _userManager.FindByIdAsync(userId);
 
