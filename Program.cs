@@ -4,8 +4,11 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using NLog.Web;
+
+// Google OAuth 2.0 credentials
+//client id : 186293098127-mt08s0o8lpj5asgvb0lc64ciqa085l2j.apps.googleusercontent.com
+//secret : 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
 
 var builder = WebApplication.CreateBuilder(args);
 

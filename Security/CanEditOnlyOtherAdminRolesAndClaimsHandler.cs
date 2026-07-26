@@ -2,7 +2,6 @@
 using EmployeeManagement.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace EmployeeManagement.Security
 {
@@ -24,7 +23,6 @@ namespace EmployeeManagement.Security
             //if logged in user id is null, return
             if (loggedInUserId == null)
             {
-                //await Task.CompletedTask;
                 return;
             }
 
@@ -39,7 +37,9 @@ namespace EmployeeManagement.Security
                 await _userManager.FindByIdAsync(userIdBeingEdited);
 
             if (targetUser == null)
+            {
                 return;
+            }
 
             // Rule 2 : Admin cannot manage Super Admin
             if (await _userManager.IsInRoleAsync(targetUser, "Super Admin"))
