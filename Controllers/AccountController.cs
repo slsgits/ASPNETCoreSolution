@@ -1,4 +1,5 @@
-﻿using EmployeeManagement.Models;
+﻿using System.Security.Claims;
+using EmployeeManagement.Models;
 using EmployeeManagement.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -70,10 +71,22 @@ namespace EmployeeManagement.Controllers
 
         [HttpGet]
         [AllowAnonymous]
-        public IActionResult Login(string? returnUrl)
+        public async Task<IActionResult> Login(string? returnUrl)
         {
-            ViewBag.ReturnUrl = returnUrl;
-            return View();
+            // Store the returnUrl in the ViewBag to be used in the view
+            //ViewBag.ReturnUrl = returnUrl;
+
+            // Populate the ExternalLogins property of the LoginViewModel
+            var model = new LoginViewModel
+            {
+                Email = string.Empty,
+                Password = string.Empty,
+               ReturnUrl = returnUrl ?? Url.Content("~/"),
+               ExternalLogins =
+               (await signInManager
+                     .GetExternalAuthenticationSchemesAsync()).ToList()
+            };
+            return View(model);
         }
 
         [HttpPost]
@@ -137,6 +150,101 @@ namespace EmployeeManagement.Controllers
             }
         }
 
-        
+        [AllowAnonymous]
+        [HttpPost]
+        public IActionResult ExternalLogin(string provider, string returnUrl)
+        {
+            var redirectUrl = Url.Action("ExternalLoginCallback", "Account",
+                                new { ReturnUrl = returnUrl });
+            var properties = _signInManager
+                .ConfigureExternalAuthenticationProperties(provider, redirectUrl);
+            return new ChallengeResult(provider, properties);
+        }
+
+        #region chatgpt generated code for external login
+        //public IActionResult ExternalLogin
+        //    (
+        //     string provider, 
+        //     string? returnUrl = null
+        //    )
+        //{
+        //    var redirectUrl = Url.Action(
+        //        "ExternalLoginCallback",
+        //        "Account",
+        //        new { ReturnUrl = returnUrl });
+
+        //    var properties =
+        //        _signInManager.ConfigureExternalAuthenticationProperties(
+        //            provider,
+        //            redirectUrl);
+
+        //    return Challenge(properties, provider);
+        //}
+        #endregion
+
+        //[HttpGet]
+        //[AllowAnonymous]
+        //public async Task<IActionResult> ExternalLoginCallback
+        //    (
+        //     string? returnUrl = null,
+        //     string? remoteError = null)
+        //{
+        //    if (remoteError != null)
+        //    {
+        //        ModelState.AddModelError(
+        //            "",
+        //            $"Error from external provider: {remoteError}");
+
+        //        return View("Login");
+        //    }
+
+        //    var info = await _signInManager.GetExternalLoginInfoAsync();
+
+        //    if (info == null)
+        //    {
+        //        return RedirectToAction("Login");
+        //    }
+
+        //    var result =
+        //                await _signInManager.ExternalLoginSignInAsync(
+        //                info.LoginProvider,
+        //                info.ProviderKey,
+        //                isPersistent: false,
+        //                bypassTwoFactor: true);
+
+        //    if (result.Succeeded)
+        //    {
+        //        return RedirectToLocal(returnUrl);
+        //    }
+
+        //    var email = info.Principal.FindFirstValue(ClaimTypes.Email);
+        //    var name = info.Principal.FindFirstValue(ClaimTypes.Name);
+        //    var user = new ApplicationUser
+        //    {
+        //        UserName = email,
+        //        Email = email,
+        //        City = ""
+        //    };
+
+        //    var createResult = await _userManager.CreateAsync(user);
+        //    if (createResult.Succeeded) {
+        //        await _userManager.AddLoginAsync(user, info);
+        //    }
+        //    await _signInManager.SignInAsync(user, false);
+        //    return RedirectToLocal(returnUrl);
+        //}
+
+        // Helper method to redirect to a
+        // local URL or fallback to the home page
+        //private IActionResult RedirectToLocal(string? returnUrl)
+        //{
+        //    if (!string.IsNullOrEmpty(returnUrl)
+        //        && Url.IsLocalUrl(returnUrl))
+        //    {
+        //        return Redirect(returnUrl);
+        //    }
+
+        //    return RedirectToAction("Index", "Home");
+        //}
     }
 }
