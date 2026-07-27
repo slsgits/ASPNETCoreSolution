@@ -5,6 +5,11 @@ namespace EmployeeManagement.ViewModels
 {
     public class LoginViewModel
     {
+        public LoginViewModel()
+        {
+            Email = string.Empty;
+            Password = string.Empty;
+        }
         [Required]
         [EmailAddress]
         public required string Email { get; set; }

@@ -79,8 +79,8 @@ namespace EmployeeManagement.Controllers
             // Populate the ExternalLogins property of the LoginViewModel
             var model = new LoginViewModel
             {
-                Email = string.Empty,
-                Password = string.Empty,
+               Email = string.Empty,
+               Password = string.Empty,
                ReturnUrl = returnUrl ?? Url.Content("~/"),
                ExternalLogins =
                (await signInManager
@@ -91,7 +91,6 @@ namespace EmployeeManagement.Controllers
 
         [HttpPost]
         [AllowAnonymous]
-
         public async Task<IActionResult> Login(LoginViewModel model, string? returnUrl)
         {
             if (!ModelState.IsValid)
@@ -152,36 +151,173 @@ namespace EmployeeManagement.Controllers
 
         [AllowAnonymous]
         [HttpPost]
-        public IActionResult ExternalLogin(string provider, string returnUrl)
+        public IActionResult ExternalLogin
+            (
+             string provider, 
+             string returnUrl
+            )
         {
-            var redirectUrl = Url.Action("ExternalLoginCallback", "Account",
-                                new { ReturnUrl = returnUrl });
+            var redirectUrl = Url
+                               .Action(
+                                       "ExternalLoginCallback", 
+                                       "Account",
+                                       new { ReturnUrl = returnUrl }
+                                       );
             var properties = _signInManager
-                .ConfigureExternalAuthenticationProperties(provider, redirectUrl);
-            return new ChallengeResult(provider, properties);
+                .ConfigureExternalAuthenticationProperties
+                (provider, redirectUrl);
+
+            // Challenge the user to log in with the external provider
+            return Challenge(properties, provider);
         }
 
+        [AllowAnonymous]
+        public async Task<IActionResult>
+            ExternalLoginCallback
+            (
+            string? returnUrl = null, 
+            string? remoteError = null
+            )
+        {
+            // If returnUrl is null, set it to the root URL
+            returnUrl ??= Url.Content("~/");
+
+            // Create a new instance of the LoginViewModel to pass to the view
+            LoginViewModel loginViewModel = new()
+            {
+                Email = string.Empty,
+                Password = string.Empty,
+                ReturnUrl = returnUrl,
+                // Populate the ExternalLogins property with the
+                // external authentication schemes
+                ExternalLogins =
+                        (await _signInManager
+                              .GetExternalAuthenticationSchemesAsync()).ToList()
+            };
+
+            if (remoteError != null)
+            {
+                _logger.LogWarning(
+                                "External login failed. Provider Error: {RemoteError}",
+                                 remoteError
+                                 );
+
+                ModelState
+                    .AddModelError(string.Empty, $"Error from external provider: {remoteError}");
+
+                return View("Login", loginViewModel);
+            }
+
+            // Get the login information about the user
+            // from the external login provider
+            var info = await _signInManager.GetExternalLoginInfoAsync();
+
+            if (info == null)
+            {
+                ModelState
+                    .AddModelError(string.Empty, "Error loading external login information.");
+
+                return View("Login", loginViewModel);
+            }
+
+            // Get the email claim value from the external login info
+            var email = info.Principal.FindFirstValue(ClaimTypes.Email);
+
+            // If the user already has a login (i.e if there is a record
+            // in AspNetUserLogins table) then sign-in the user with
+            // this external login provider
+            var signInResult = await _signInManager
+                                    .ExternalLoginSignInAsync
+                                     (
+                                      info.LoginProvider,
+                                      info.ProviderKey, 
+                                      isPersistent: false, 
+                                      bypassTwoFactor: true
+                                      );
+
+            if (signInResult.Succeeded)
+            {
+                _logger.LogInformation(
+                          "User {Email} logged in using {Provider}.",
+                          email,
+                          info.LoginProvider);
+
+                return LocalRedirect(returnUrl);
+            }
+            // If there is no record in AspNetUserLogins table,
+            // the user may not have
+            // a local account
+            else
+            {
+                // Get the email claim value
+                //var email = info.Principal.FindFirstValue(ClaimTypes.Email);
+
+                if (email != null)
+                {
+                    // Create a new user without password if we do not have a user already
+                    var user = await _userManager.FindByEmailAsync(email);
+
+                    if (user == null)
+                    {
+                        user = new ApplicationUser
+                        {
+                            UserName = email,
+                            Email = email,
+                            City = string.Empty
+                        };
+
+                        // Create the user in the database
+                        var createResult = await _userManager.CreateAsync(user);
+                        if (!createResult.Succeeded)
+                        {
+                            AddIdentityErrors(createResult);
+                            return View("Login", loginViewModel);
+                        }
+                        _logger.LogInformation(
+                             "New user created using {Provider}. Email: {Email}",
+                             info.LoginProvider,
+                             email);
+                    }
+
+                    // Add a login (i.e insert a row for the user in AspNetUserLogins table)
+                    var addLoginResult = await _userManager.AddLoginAsync(user, info);
+                    if (!addLoginResult.Succeeded)
+                    {
+                        AddIdentityErrors(addLoginResult);
+                        return View("Login", loginViewModel);
+                    }
+                    _logger.LogInformation(
+                            "{Provider} login linked successfully for user {Email}.",
+                            info.LoginProvider,
+                            email);
+
+                    await _signInManager.SignInAsync(user, isPersistent: false);
+
+                    _logger.LogInformation(
+                                    "User {Email} signed in successfully using {Provider}.",
+                                    email,
+                                    info.LoginProvider);
+
+                    return LocalRedirect(returnUrl);
+                    //return Content("Google Login Successful");
+                }
+
+                // If we cannot find the user email we cannot continue
+                ViewBag.ErrorTitle = $"Email claim not received from: {info.LoginProvider}";
+                ViewBag.ErrorMessage = "Please contact support on xyz@xyz.com";
+                return View("Error");
+            }
+        }
+
+        // Helper method to add identity errors to the ModelState
+        private void AddIdentityErrors(IdentityResult result)
+        {
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
+            }
+        }
         #region chatgpt generated code for external login
-        //public IActionResult ExternalLogin
-        //    (
-        //     string provider, 
-        //     string? returnUrl = null
-        //    )
-        //{
-        //    var redirectUrl = Url.Action(
-        //        "ExternalLoginCallback",
-        //        "Account",
-        //        new { ReturnUrl = returnUrl });
-
-        //    var properties =
-        //        _signInManager.ConfigureExternalAuthenticationProperties(
-        //            provider,
-        //            redirectUrl);
-
-        //    return Challenge(properties, provider);
-        //}
-        #endregion
-
         //[HttpGet]
         //[AllowAnonymous]
         //public async Task<IActionResult> ExternalLoginCallback
@@ -246,5 +382,6 @@ namespace EmployeeManagement.Controllers
 
         //    return RedirectToAction("Index", "Home");
         //}
+        #endregion
     }
 }

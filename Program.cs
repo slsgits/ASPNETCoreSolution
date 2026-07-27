@@ -6,10 +6,6 @@ using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
 using NLog.Web;
 
-// Google OAuth 2.0 credentials
-//client id : 186293098127-mt08s0o8lpj5asgvb0lc64ciqa085l2j.apps.googleusercontent.com
-//secret : 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
-
 var builder = WebApplication.CreateBuilder(args);
 
 // Remove default logging providers
@@ -86,8 +82,11 @@ builder.Services.ConfigureApplicationCookie(options =>
 builder.Services.AddAuthentication()
     .AddGoogle(options =>
     {
-        options.ClientId = builder.Configuration["Authentication:Google:ClientId"] ?? string.Empty;
-        options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"] ?? string.Empty;
+        options.ClientId = builder.Configuration["Authentication:Google:ClientId"] 
+        ?? throw new InvalidOperationException("Google ClientId is missing.");
+
+        options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"] 
+        ?? throw new InvalidOperationException("Google ClientSecret is missing.");
     });
 
 var app = builder.Build();

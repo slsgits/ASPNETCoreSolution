@@ -32,14 +32,13 @@
 	<div class="border rounded p-4 shadow-sm col-md-6">
 		<h1>External Account Login</h1>
 		<hr />
-		<form method="post" asp-action="ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl">
+		<form method="post" 
+			  asp-action="ExternalLogin" 
+			  asp-route-returnUrl="@Model.ReturnUrl">
 			<div>
-				@if (!Model.ExternalLogins.Any())
+				@if(Model.ExternalLogins.Count == 0)
 				{
-					<p>
-						There are no external authentication providers configured.
-						Please contact the system administrator.
-					</p>
+					<div>No external logins configured.</div>
 				}
 				else
 				{
