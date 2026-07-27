@@ -89,6 +89,15 @@ builder.Services.AddAuthentication()
         ?? throw new InvalidOperationException("Google ClientSecret is missing.");
     });
 
+// Add Facebook authentication
+builder.Services.AddAuthentication()
+    .AddFacebook(options =>
+    {
+        options.AppId = builder.Configuration["Authentication:Facebook:AppId"] 
+        ?? throw new InvalidOperationException("Facebook AppId is missing.");
+        options.AppSecret = builder.Configuration["Authentication:Facebook:AppSecret"] 
+        ?? throw new InvalidOperationException("Facebook AppSecret is missing.");
+    });
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
