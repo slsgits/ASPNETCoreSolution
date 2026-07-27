@@ -68,7 +68,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(
 builder.Services.AddScoped<IEmployeeRepository, SQLEmployeeRepository>();
 
 // Register the custom authorization handler
-builder.Services.AddSingleton<
+builder.Services.AddScoped<
     IAuthorizationHandler, 
     CanEditOnlyOtherAdminRolesAndClaimsHandler>();
 
