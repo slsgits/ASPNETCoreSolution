@@ -15,3 +15,21 @@
         confirmDeleteSpan.style.display = "none";
     }
 }
+
+function confirmUnlock(userId, isUnlockClicked) {
+
+    var unlockSpan =
+        document.getElementById('unlockSpan_' + userId);
+
+    var confirmUnlockSpan =
+        document.getElementById('confirmUnlockSpan_' + userId);
+
+    if (isUnlockClicked) {
+        unlockSpan.style.display = "none";
+        confirmUnlockSpan.style.display = "inline";
+    }
+    else {
+        unlockSpan.style.display = "inline";
+        confirmUnlockSpan.style.display = "none";
+    }
+}

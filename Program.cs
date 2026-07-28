@@ -1,5 +1,6 @@
 using EmployeeManagement.Models;
 using EmployeeManagement.Security;
+using EmployeeManagement.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Authorization;
@@ -61,9 +62,18 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(
                      //options.Password.RequireLowercase = true;
                      //options.Password.RequireDigit = true;
                      //options.User.RequireUniqueEmail = true;
-                     //options.SignIn.RequireConfirmedEmail = false;
+                     options.SignIn.RequireConfirmedEmail = true;
+                     options.Tokens.EmailConfirmationTokenProvider = "CustomEmailConfirmation";
+
+                     // Configure lockout settings
+                     options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+                     options.Lockout.MaxFailedAccessAttempts = 3;
+                     options.Lockout.AllowedForNewUsers = true;
                  })
-                .AddEntityFrameworkStores<AppDBContext>();
+                .AddEntityFrameworkStores<AppDBContext>()
+                .AddDefaultTokenProviders()
+                .AddTokenProvider<EmailConfirmationTokenProvider
+                                  <ApplicationUser>>("CustomEmailConfirmation");
 
 builder.Services.AddScoped<IEmployeeRepository, SQLEmployeeRepository>();
 
@@ -98,6 +108,27 @@ builder.Services.AddAuthentication()
         options.AppSecret = builder.Configuration["Authentication:Facebook:AppSecret"] 
         ?? throw new InvalidOperationException("Facebook AppSecret is missing.");
     });
+
+// token lifespan configuration globally for all token providers (default is 1 day)
+builder.Services
+    .Configure<DataProtectionTokenProviderOptions>
+    (options =>
+    {
+        options.TokenLifespan = TimeSpan.FromHours(6);
+    });
+
+// token lifespan configuration for email confirmation
+builder.Services
+    .Configure<EmailConfirmationTokenProviderOptions>
+    (options =>
+    {
+      options.TokenLifespan = TimeSpan.FromHours(1);
+    });
+
+// Register the data protection services
+builder.Services.AddDataProtection();
+builder.Services.AddScoped<IDataProtectionService,
+                           DataProtectionService>();
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())

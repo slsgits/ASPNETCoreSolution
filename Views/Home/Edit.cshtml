@@ -7,7 +7,7 @@
 	  asp-action="edit" 
 	  method="post" 
 	  class="border rounded p-4 shadow-sm mt-3">
-	<input type="hidden" asp-for="Id" />
+	<input type="hidden" asp-for="EncryptedId" />
 	@for (int i = 0; i < Model.ExistingPhotoPaths.Count; i++)
 	{
 		<input type="hidden" asp-for="ExistingPhotoPaths[i]" />

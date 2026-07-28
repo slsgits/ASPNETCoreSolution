@@ -3,6 +3,12 @@
 	ViewBag.Title = "All Users";
 }
 <h1>@ViewBag.Title</h1>
+@if (TempData["SuccessMessage"] != null)
+{
+	<div class="alert alert-success">
+		@TempData["SuccessMessage"]
+	</div>
+}
 @if(Model.Any())
 {
 	<a asp-action="register"
@@ -20,6 +26,46 @@
 				<h5 class="card-title">
 					@user.UserName
 				</h5>
+
+				<p class="card-text mb-1">
+					<strong>Email:</strong> @user.Email
+				</p>
+
+				<p class="card-text mb-1">
+					<strong>City:</strong> @user.City
+				</p>
+
+				<p class="card-text mb-1">
+					<strong>Status:</strong>
+
+					@if (user.LockoutEnd.HasValue &&
+								user.LockoutEnd > DateTimeOffset.UtcNow)
+					{
+						<span class="badge bg-danger">
+							Locked
+						</span>
+					}
+					else
+					{
+						<span class="badge bg-success">
+							Active
+						</span>
+					}
+				</p>
+
+				@if (user.LockoutEnd.HasValue &&
+						user.LockoutEnd > DateTimeOffset.UtcNow)
+				{
+					<p class="card-text mb-1">
+						<strong>Lockout Until:</strong>
+						@user.LockoutEnd.Value.ToLocalTime().ToString("dd-MMM-yyyy hh:mm tt")
+					</p>
+
+					<p class="card-text mb-1">
+						<strong>Failed Attempts:</strong>
+						@user.AccessFailedCount
+					</p>
+				}
 			</div>
 			<div class="card-footer">
 				<a asp-action="EditUser"
@@ -55,6 +101,37 @@
 						</a>
 					</form>
 				</span>
+				@if (user.LockoutEnd.HasValue &&
+						user.LockoutEnd > DateTimeOffset.UtcNow)
+				{
+				<span id="unlockSpan_@user.Id">
+					<a href="#"
+					   class="btn btn-warning"
+					   onclick="confirmUnlock('@user.Id', true)">
+						Unlock
+					</a>
+				</span>
+				<span id="confirmUnlockSpan_@user.Id" style="display:none">
+					<span class="text-danger fw-bold">
+						Are you sure you want to unlock user?
+					</span>
+
+					<form method="post"
+						  asp-action="UnlockUser"
+						  asp-route-id="@user.Id"
+						  class="d-inline">
+						<button type="submit" class="btn btn-danger btn-sm">
+							Yes
+						</button>
+
+						<a href="#"
+						   class="btn btn-secondary btn-sm"
+						   onclick="confirmUnlock('@user.Id', false)">
+							No
+						</a>
+					</form>
+				</span>
+				}
 			</div>
 		</div>
 	}

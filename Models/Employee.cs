@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EmployeeManagement.Models
 {
@@ -7,6 +8,8 @@ namespace EmployeeManagement.Models
         public int Id { get; set; }
         [Required]
         [MaxLength(50, ErrorMessage = "Name cannot exceed 50 characters")]
+        [NotMapped]
+        public string EncryptedId { get; set; } = string.Empty;
         public required string Name { get; set; }
         [Required]
         [MaxLength(50, ErrorMessage = "Email cannot exceed 50 characters")]

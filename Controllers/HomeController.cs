@@ -1,4 +1,5 @@
 ﻿using EmployeeManagement.Models;
+using EmployeeManagement.Services;
 using EmployeeManagement.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -8,12 +9,14 @@ namespace EmployeeManagement.Controllers
     [Route("[controller]/[action]")]
     public class HomeController(IEmployeeRepository employeeRepository, 
                                 IWebHostEnvironment webhostEnvironment,
-                                ILogger<HomeController> logger) 
+                                ILogger<HomeController> logger,
+                                IDataProtectionService dataProtectionService) 
                : Controller
     {
         private readonly IEmployeeRepository _employeeRepository = employeeRepository;
         private readonly IWebHostEnvironment _hostEnvironment = webhostEnvironment;
         private readonly ILogger<HomeController> _logger = logger;
+        private readonly IDataProtectionService _dataProtectionService = dataProtectionService;
 
         [Route("")]
         [Route("~/")]
@@ -22,7 +25,13 @@ namespace EmployeeManagement.Controllers
         public ViewResult Index()
         {
             _logger.LogInformation("Employee list requested.");
-            var employee = _employeeRepository.GetAllEmployees();
+            var employee = _employeeRepository
+                           .GetAllEmployees()
+                           .Select(e =>
+                           {
+                               e.EncryptedId = _dataProtectionService.Protect(e.Id.ToString());
+                               return e;
+                           });
             return View(employee);
         }
         [HttpGet]
@@ -33,18 +42,20 @@ namespace EmployeeManagement.Controllers
 
         [HttpGet]
         
-        public IActionResult Edit(int id)
+        public IActionResult Edit(string Id)
         {
-            var employee = _employeeRepository.GetEmployee(id);
+            int decryptedId = int.Parse(_dataProtectionService.Unprotect(Id));
+            var employee = _employeeRepository.GetEmployee(decryptedId);
             if (employee == null)
             {
-                _logger.LogWarning("Edit failed. Employee with Id {EmployeeId} was not found.",id);
+                _logger.LogWarning("Edit failed. Employee with Id {EmployeeId} was not found.",Id);
                 return NotFound();
             }
 
             var employeeEditViewModel = new EmployeeEditViewModel
             {
                 Id = employee.Id,
+                EncryptedId = _dataProtectionService.Protect(employee.Id.ToString()),
                 Name = employee.Name,
                 Email = employee.Email,
                 Department = employee.Department,
@@ -60,8 +71,9 @@ namespace EmployeeManagement.Controllers
         {
             try
             {
+                int employeeId =int.Parse(_dataProtectionService.Unprotect(model.EncryptedId));
                 // reload existing photos if validation fails
-                Employee? employee = _employeeRepository.GetEmployee(model.Id);
+                Employee? employee = _employeeRepository.GetEmployee(employeeId);
 
                 if (employee == null)
                 {
@@ -152,11 +164,13 @@ namespace EmployeeManagement.Controllers
 
         [Route("{id?}")]
         [AllowAnonymous]
-        public ViewResult Details(int? id)
+        public ViewResult Details(string id)
         {
             try
             {
-                Employee employee = _employeeRepository.GetEmployee(id ?? 1);
+                int employeeId = Convert.ToInt32(
+                               _dataProtectionService.Unprotect(id));
+                Employee employee = _employeeRepository.GetEmployee(employeeId);
 
                 if (employee == null)
                 {
@@ -249,9 +263,10 @@ namespace EmployeeManagement.Controllers
 
         [HttpGet]
         
-        public IActionResult Delete(int id)
+        public IActionResult Delete(string id)
         {
-            var employee = _employeeRepository.GetEmployee(id);
+            int employeeId = int.Parse(_dataProtectionService.Unprotect(id));
+            var employee = _employeeRepository.GetEmployee(employeeId);
             if (employee == null)
             {
                 _logger.LogWarning("Delete failed. Employee with Id {EmployeeId} was not found.", id);
@@ -263,11 +278,12 @@ namespace EmployeeManagement.Controllers
 
         [HttpPost, ActionName("Delete")]
         
-        public IActionResult DeleteConfirmed(int id)
+        public IActionResult DeleteConfirmed(string id)
         {
             try
             {
-                var employee = _employeeRepository.GetEmployee(id);
+                int employeeId = int.Parse(_dataProtectionService.Unprotect(id));
+                var employee = _employeeRepository.GetEmployee(employeeId);
                 if (employee == null)
                 {
                     _logger.LogWarning("Delete failed. Employee with Id {EmployeeId} was not found.", id);

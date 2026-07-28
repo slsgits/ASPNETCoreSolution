@@ -15,8 +15,10 @@ namespace EmployeeManagement.Models
 
         public Employee Delete(Employee employee)
         {
+            _context.EmployeePhotos.RemoveRange(employee.Photos);
             _context.Employees.Remove(employee);
             _context.SaveChanges();
+
             return employee;
         }
 
@@ -29,8 +31,9 @@ namespace EmployeeManagement.Models
 
         public Employee GetEmployee(int id)
         {
-            return _context.Employees.AsNoTracking().
-                   Include(e => e.Photos).
+            return _context.Employees
+                   .AsNoTracking()
+                   .Include(e => e.Photos).
                    FirstOrDefault(e => e.Id == id)!;
         }
 

@@ -372,6 +372,8 @@ namespace EmployeeManagement.Controllers
 
                 if (result.Succeeded)
                 {
+                    TempData["SuccessMessage"] =
+                             $"{user.Email} has been deleted successfully.";
                     return RedirectToAction("ListUsers");
                 }
 
@@ -379,7 +381,7 @@ namespace EmployeeManagement.Controllers
                 {
                     ModelState.AddModelError("", error.Description);
                 }
-
+                
                 return View("ListUsers");
             }
             catch (DbUpdateException ex)
@@ -572,6 +574,37 @@ namespace EmployeeManagement.Controllers
 
             return RedirectToAction("EditUser", new { Id = model.UserId });
 
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UnlockUser(string id)
+        {
+            // Find the user by ID
+            var user = await _userManager.FindByIdAsync(id);
+
+            if (user == null)
+            {
+                return View("NotFound");
+            }
+
+            // Unlock the user by setting the lockout end date to
+            // the current UTC time
+            await _userManager.SetLockoutEndDateAsync(
+                user,
+                DateTimeOffset.UtcNow);
+
+            // Reset the access failed count for the user
+            await _userManager.ResetAccessFailedCountAsync(user);
+
+            _logger.LogInformation(
+                "User {Email} unlocked by {Admin}",
+                user.Email,
+                User.Identity?.Name);
+
+            TempData["SuccessMessage"] =
+                $"{user.Email} has been unlocked successfully.";
+
+            return RedirectToAction(nameof(ListUsers));
         }
     }
 }
