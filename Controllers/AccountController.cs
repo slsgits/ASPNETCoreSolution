@@ -1,4 +1,9 @@
-﻿using System.Security.Claims;
+﻿// Controller: AccountController
+// This controller handles user account-related actions
+// such as registration, login, logout, password reset, and
+// email confirmation.
+
+using System.Security.Claims;
 using EmployeeManagement.Models;
 using EmployeeManagement.ViewModels;
 using Microsoft.AspNetCore.Authorization;
@@ -7,17 +12,56 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace EmployeeManagement.Controllers
 {
+    /// <summary>
+    // The [Route] attribute specifies the route template for
+    // the controller's actions.
+    /// </summary>
+    /// <param name="userManager"></param>
+    /// <param name="signInManager"></param>
+    /// <param name="logger"></param>
     [Route("[controller]/[action]")]
-    public class AccountController(
-           UserManager<ApplicationUser> userManager,
-           SignInManager<ApplicationUser> signInManager,
-           ILogger<HomeController> logger)
-         : Controller
-    {
-        private readonly UserManager<ApplicationUser> _userManager = userManager;
-        private readonly SignInManager<ApplicationUser> _signInManager = signInManager;
-        private readonly ILogger<HomeController> _logger = logger;
 
+    /// <summary>
+    /// Controller for managing user accounts, including registration, 
+    /// login, logout, password reset, and email confirmation.
+    /// </summary>
+    public class AccountController : Controller
+    {
+        #region Private Fields
+        /// <summary>
+        /// private fields for UserManager, SignInManager, and 
+        /// ILogger to manage user accounts, sign-in operations, and 
+        /// logging respectively.
+        /// </summary>
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly ILogger<HomeController> _logger;
+        #endregion
+
+        #region Constructor
+        /// <summary>
+        /// constructor for the AccountController class, which initializes 
+        /// the UserManager, SignInManager, and ILogger fields. (DI)
+        /// </summary>
+        /// <param name="userManager"></param>
+        /// <param name="signInManager"></param>
+        /// <param name="logger"></param>
+        public AccountController(
+            UserManager<ApplicationUser> userManager,
+            SignInManager<ApplicationUser> signInManager,
+            ILogger<HomeController> logger)
+        {
+            _userManager = userManager;
+            _signInManager = signInManager;
+            _logger = logger;
+        }
+        #endregion
+
+        #region Action Methods
+        /// <summary>
+        /// action method to display the registration view for new users.
+        /// </summary>
+        /// <returns></returns>
         [HttpGet]
         [AllowAnonymous]
         public IActionResult Register()
@@ -25,6 +69,16 @@ namespace EmployeeManagement.Controllers
             return View();
         }
 
+        /// <summary>
+        /// action method to handle the registration of new users. 
+        /// It validates the model, creates a new user, generates 
+        /// an email confirmation token, and sends a confirmation link to 
+        /// the user's email. If the registration is successful, 
+        /// it redirects to the appropriate page based on the user's role 
+        /// or displays a message to confirm their email.
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
         [HttpPost]
         [AllowAnonymous]
         public async Task<IActionResult> Register(RegisterViewModel model)
@@ -82,6 +136,13 @@ namespace EmployeeManagement.Controllers
             return View(model);
         }
 
+        /// <summary>
+        /// action method to display the login view for users. 
+        /// It populates the LoginViewModel with the return URL and 
+        /// external login providers.
+        /// </summary>
+        /// <param name="returnUrl"></param>
+        /// <returns></returns>
         [HttpGet]
         [AllowAnonymous]
         public async Task<IActionResult> Login(string? returnUrl)
@@ -96,15 +157,25 @@ namespace EmployeeManagement.Controllers
                 Password = string.Empty,
                 ReturnUrl = returnUrl ?? Url.Content("~/"),
                 ExternalLogins =
-               (await signInManager
+               (await _signInManager
                      .GetExternalAuthenticationSchemesAsync()).ToList()
             };
             return View(model);
         }
-
+        
+        /// <summary>
+        /// action method to handle the login of users. 
+        /// It validates the model, checks if the user's email is confirmed, 
+        /// and attempts to sign in the user. It handles different scenarios 
+        /// such as successful login, locked out accounts, and failed login attempts.
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="returnUrl"></param>
+        /// <returns></returns>
         [HttpPost]
         [AllowAnonymous]
-        public async Task<IActionResult> Login(LoginViewModel model, string? returnUrl)
+        public async Task<IActionResult> Login(
+            LoginViewModel model, string? returnUrl)
         {
             if (!ModelState.IsValid)
             {
@@ -112,9 +183,9 @@ namespace EmployeeManagement.Controllers
             }
 
             // Check if the user exists and if their email is confirmed
-            var user = await userManager.FindByEmailAsync(model.Email);
+            var user = await _userManager.FindByEmailAsync(model.Email);
             if (user != null && !user.EmailConfirmed &&
-                   (await userManager.CheckPasswordAsync(user, model.Password)))
+                   (await _userManager.CheckPasswordAsync(user, model.Password)))
             {
                 ModelState.AddModelError(string.Empty, "Email not confirmed yet");
                 return View(model);
@@ -157,13 +228,28 @@ namespace EmployeeManagement.Controllers
             ModelState.AddModelError(string.Empty, "Invalid Login Attempt!");
             return View(model);
         }
+
+        /// <summary>
+        /// action method to handle the logout of users. 
+        /// It signs out the user and redirects them to the home page.
+        /// </summary>
+        /// <returns></returns>
         public async Task<IActionResult> Logout()
         {
             await _signInManager.SignOutAsync();
             _logger.LogInformation("User logged out : {Email}", User.Identity?.Name ?? "Unknown");
             return RedirectToAction("Index", "Home");
         }
+        #endregion
 
+        /// <summary>
+        /// Checks whether the specified email address is already 
+        /// associated with an existing user.
+        /// </summary>
+        /// <param name="email">The email address to verify for uniqueness.</param>
+        /// <returns>A JSON result indicating true if the email is 
+        /// available; otherwise, a message stating the email is already
+        /// in use.</returns>
         [AcceptVerbs("GET", "POST")]
         [AllowAnonymous]
         public async Task<IActionResult> IsEmailInUse(string email)
@@ -179,6 +265,12 @@ namespace EmployeeManagement.Controllers
             }
         }
 
+        /// <summary>
+        /// external login action method that initiates the external login process 
+        /// </summary>
+        /// <param name="provider">The external login provider.</param>
+        /// <param name="returnUrl">The URL to redirect to after a successful login.</param>
+        /// <returns>An IActionResult that redirects the user to the external login provider.</returns>
         [AllowAnonymous]
         [HttpPost]
         public IActionResult ExternalLogin
@@ -201,6 +293,12 @@ namespace EmployeeManagement.Controllers
             return Challenge(properties, provider);
         }
 
+        /// <summary>
+        ///  action method that handles the callback from the external login provider.
+        /// </summary>
+        /// <param name="returnUrl">The URL to redirect to after a successful login.</param>
+        /// <param name="remoteError">The error message returned by the external login provider, if any.</param>
+        /// <returns>An IActionResult that redirects the user to the specified return URL or displays the login view with an error message.</returns>
         [AllowAnonymous]
         public async Task<IActionResult>
             ExternalLoginCallback

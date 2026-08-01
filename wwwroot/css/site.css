@@ -1,6 +1,16 @@
-﻿.btn {
+﻿/* Add your custom CSS styles here */
+/* Example: Change the background color of the body */
+/*body {
+    background-color: #f8f9fa;
+}*/
+
+
+/* Change width of buttons having class as btn */
+.btn {
     width: 75px;
 }
+
+/* Change width and height of images having class as card-img-top */
 .card-img-top {
     width: 120px;
     height: 150px;
