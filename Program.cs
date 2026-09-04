@@ -36,6 +36,7 @@ builder.Services.AddAuthorizationBuilder()
                 .AddPolicy("CreateRolePolicy", policy => policy
                            .RequireClaim("Create Role", "true"));
 
+// Add custom authorization policy for editing roles and claims
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("EditRolePolicy", policy =>
     {
@@ -43,6 +44,7 @@ builder.Services.AddAuthorizationBuilder()
             new ManageAdminRolesAndClaimsRequirement());
     });
 
+// Add claim based authorization policies
 builder.Services.AddAuthorizationBuilder()
                 .AddPolicy("DeleteRolePolicy", policy => policy
                            .RequireClaim("Delete Role", "true"));
@@ -52,6 +54,7 @@ builder.Services.AddAuthorizationBuilder()
                 .AddPolicy("AdminRolePolicy", policy => policy
                            .RequireRole("Admin"));
 
+// Add identity services with custom options
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(
                  options =>
                  {
@@ -75,6 +78,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(
                 .AddTokenProvider<EmailConfirmationTokenProvider
                                   <ApplicationUser>>("CustomEmailConfirmation");
 
+// Register the employee repository
 builder.Services.AddScoped<IEmployeeRepository, SQLEmployeeRepository>();
 
 // Register the custom authorization handler
@@ -129,6 +133,8 @@ builder.Services
 builder.Services.AddDataProtection();
 builder.Services.AddScoped<IDataProtectionService,
                            DataProtectionService>();
+
+// app building and middleware configuration
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())

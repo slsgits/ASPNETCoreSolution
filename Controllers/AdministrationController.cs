@@ -64,7 +64,8 @@ namespace EmployeeManagement.Controllers
                     Name = model.RoleName
                 };
 
-                IdentityResult result = await _roleManager.CreateAsync(identityRole);
+                IdentityResult result = await _roleManager
+                    .CreateAsync(identityRole);
                 
                 if (result.Succeeded)
                 {
